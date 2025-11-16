@@ -3,74 +3,169 @@
 <%
   if status == "FINISHED":
     statusy = "alert-success"
+    status_icon = "fas fa-check-circle"
   elif status.startswith("ABORT"):
     statusy = "alert-warning"
+    status_icon = "fas fa-exclamation-triangle"
   elif status == "CREATED" or status == "RUNNING" or status == "STARTED" or status == "STARTING" or status == "INITIALIZING":
     statusy = "alert-info"
+    status_icon = "fas fa-play-circle"
   elif status == "ERROR-FAILED":
     statusy = "alert-danger"
+    status_icon = "fas fa-times-circle"
   else:
     statusy = "alert-info"
+    status_icon = "fas fa-info-circle"
   end
 %>
-<h2>${name}&nbsp;<span id='scanstatusbadge' class='badge ${statusy}'>${status}</span>&nbsp;<img id="loader" src="${docroot}/static/img/loader.gif"></h2>
-  <div class="btn-toolbar" role="toolbar" style='padding-bottom: 10px'>
-   <div class="btn-group">
-      <a id='btn-status' class="btn btn-default" onClick='scanSummaryView("${id}")'><i class='glyphicon glyphicon-eye-open'></i>&nbsp;Summary</a>
-      <a id='btn-correlations' class="btn btn-default" onClick='browseCorrelations("${id}")'><i class='glyphicon glyphicon-exclamation-sign'></i>&nbsp;Correlations</a>
-      <a id='btn-browse' class="btn btn-default" onClick='browseEventList("${id}")'><i class='glyphicon glyphicon-th-list'></i>&nbsp;Browse</a>
-      <a id='btn-graph' class="btn btn-default" onClick='graphEvents("${id}")'><i class='glyphicon glyphicon-asterisk'></i>&nbsp;Graph</a>
-      <a id='btn-info' class="btn btn-default" onClick='viewScanConfig("${id}")'><i class='glyphicon glyphicon-cog'></i>&nbsp;Scan Settings</a>
-      <a id='btn-log' class="btn btn-default" onClick='viewScanLog("${id}")'><i class='glyphicon glyphicon-book'></i>&nbsp;Log</a>
-    </div>
-    <div class='btn-group pull-right'>
-        <div id='btn-search' class='input-group pull-right'>
-          <input class='form-control' id='searchvalue' type='text' placeholder='Search...' data-toggle='popover' data-html='true' data-animation='true' data-title='Usage' data-content="Supply a regular expression encapsulated in '/', e.g. <i>/searchregex/</i> or a simple wildcard search, e.g. <i>*string*</i> or an exact value, e.g. <i>string</i>.<br /><br /><b>Note</b> that the current scope is what's searched.">
-            <div class='input-group-btn' style='width: 0px'> <!-- Chrome fix -->
-              <button class='btn btn-primary' id='searchbutton' type='button' onClick="$('#btn-search').popover('toggle');searchDirector('${id}')">
-                <i class='glyphicon glyphicon-search glyphicon glyphicon-white'></i>
-              </button>
+
+<div class="main-content">
+    <div class="scan-header">
+        <div class="scan-title-section">
+            <h2><i class="fas fa-search-plus"></i> ${name}</h2>
+            <div class="scan-status">
+                <span id='scanstatusbadge' class='status-badge ${statusy}'>
+                    <i class='${status_icon}'></i>
+                    ${status}
+                </span>
+                <img id="loader" src="${docroot}/static/img/loader.gif" class="status-loader">
+            </div>
+        </div>
+        
+        <div class="scan-toolbar">
+            <div class="toolbar-section">
+                <div class="action-buttons">
+                    <button id='btn-status' class="btn btn-primary" onClick='scanSummaryView("${id}")'>
+                        <i class='fas fa-eye'></i>
+                        <span>Summary</span>
+                    </button>
+                    <button id='btn-correlations' class="btn btn-warning" onClick='browseCorrelations("${id}")'>
+                        <i class='fas fa-exclamation-triangle'></i>
+                        <span>Correlations</span>
+                    </button>
+                    <button id='btn-browse' class="btn btn-info" onClick='browseEventList("${id}")'>
+                        <i class='fas fa-list'></i>
+                        <span>Browse</span>
+                    </button>
+                    <button id='btn-graph' class="btn btn-success" onClick='graphEvents("${id}")'>
+                        <i class='fas fa-project-diagram'></i>
+                        <span>Graph</span>
+                    </button>
+                    <button id='btn-info' class="btn btn-secondary" onClick='viewScanConfig("${id}")'>
+                        <i class='fas fa-cogs'></i>
+                        <span>Settings</span>
+                    </button>
+                    <button id='btn-log' class="btn btn-dark" onClick='viewScanLog("${id}")'>
+                        <i class='fas fa-file-alt'></i>
+                        <span>Log</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="toolbar-section">
+                <div class="search-controls">
+                    <div id='btn-search' class='search-input-group'>
+                        <input class='form-control search-input' id='searchvalue' type='text' placeholder='Search investigation data...' 
+                               data-toggle='popover' data-html='true' data-animation='true' 
+                               data-title='Search Usage' 
+                               data-content="Use regular expressions like <code>/pattern/</code>, wildcards like <code>*term*</code>, or exact matches.">
+                        <button class='btn btn-search' id='searchbutton' type='button' onClick="searchDirector('${id}')">
+                            <i class='fas fa-search'></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="toolbar-section">
+                <div class="utility-buttons">
+                    <button id='btn-refresh' class="btn btn-outline" onClick='refresh()' data-tooltip="Refresh Data">
+                        <i class='fas fa-sync-alt'></i>
+                    </button>
+                    <button id='btn-download-logs' class="btn btn-outline download-button" onClick='downloadLogs("${id}")' data-tooltip="Download Logs">
+                        <i class='fas fa-download'></i>
+                    </button>
+                    <div class="dropdown">
+                        <button id='btn-export' class="btn btn-outline dropdown-toggle" data-toggle="dropdown" data-tooltip="Export Data">
+                            <i class='fas fa-file-export'></i>
+                            <i class='fas fa-chevron-down dropdown-arrow'></i>
+                        </button>
+                        <ul class="dropdown-menu export-menu">
+                            <li><a class='export-link' onClick='exportEventData("${id}", currentType, "csv")'><i class="fas fa-file-csv"></i> CSV</a></li>
+                            <li><a class='export-link' onClick='exportEventData("${id}", currentType, "excel")'><i class="fas fa-file-excel"></i> Excel</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="view-controls">
+            <div id='customtabview' class="view-group">
+                <button id='btn-fullview' class="btn btn-view active" onClick='browseUpdate("full")' data-tooltip="Full Data View">
+                    <i class='fas fa-th'></i>
+                    <span>Full</span>
+                </button>
+                <button id='btn-uniqueview' class="btn btn-view" onClick='browseUpdate("unique")' data-tooltip="Unique Data View">
+                    <i class='fas fa-filter'></i>
+                    <span>Unique</span>
+                </button>
+                <div class="dropdown">
+                    <button id='btn-vizview' class="btn btn-view dropdown-toggle" data-toggle="dropdown" data-tooltip="Visualizations">
+                        <i class='fas fa-chart-network'></i>
+                        <span>Visualize</span>
+                        <i class='fas fa-chevron-down dropdown-arrow'></i>
+                    </button>
+                    <ul class="dropdown-menu viz-menu">
+                        <li><a class='viz-link' onClick='browseUpdate("viz-bubble-data")'><i class="fas fa-circle"></i> Bubble (Data)</a></li>
+                        <li><a class='viz-link' onClick='browseUpdate("viz-bubble-source")'><i class="fas fa-dot-circle"></i> Bubble (Source)</a></li>
+                        <li><a class='viz-link' onClick='browseUpdate("viz-dendro")'><i class="fas fa-sitemap"></i> Discovery Path</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div id='customvizview' class="viz-controls" style="display: none;">
+                <button id='btn-random' class="btn btn-viz active" onClick='vizUpdate("random")' data-tooltip="Random Layout">
+                    <i class='fas fa-random'></i>
+                    <span>Random</span>
+                </button>
+                <button id='btn-forceatlas' class="btn btn-viz" onClick='vizUpdate("force")' data-tooltip="Force Layout">
+                    <i class='fas fa-project-diagram'></i>
+                    <span>Force</span>
+                </button>
+                <button id='btn-saveimage' class="btn btn-viz" onClick='vizUpdate("download")' data-tooltip="Save Image">
+                    <i class='fas fa-camera'></i>
+                    <span>Save</span>
+                </button>
+            </div>
+            
+            <div id='modifyactions' class="modify-controls">
+                <div class="dropdown">
+                    <button id='btn-setfp' class="btn btn-warning dropdown-toggle" data-toggle="dropdown" data-tooltip="False Positive Actions">
+                        <i class='fas fa-ban'></i>
+                        <span>False Positive</span>
+                        <i class='fas fa-chevron-down dropdown-arrow'></i>
+                    </button>
+                    <ul class="dropdown-menu fp-menu">
+                        <li><a href='#' class='fp-link' onClick='setFp(1)'><i class="fas fa-check"></i> Mark as False Positive</a></li>
+                        <li><a href='#' class='fp-link' onClick='setFp(0)'><i class="fas fa-times"></i> Remove False Positive</a></li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
-        <div class="btn-group pull-right" role="group">
-            <button id='btn-refresh' rel="tooltip" title="Refresh" class="btn btn-success btn-default" onClick='refresh()'><i class='glyphicon glyphicon-refresh glyphicon glyphicon-white'></i></button>
-            <button id='btn-download-logs' rel="tooltip" data-title="Download Scan Logs" class="btn btn-default download-button" onClick='downloadLogs("${id}")'><i class='glyphicon glyphicon-download-alt glyphicon glyphicon-white'></i></button>
-            <a id='btn-export' rel="tooltip" data-title="Export Data" class="btn btn-default dropdown-toggle download-button" data-toggle="dropdown"><i class='glyphicon glyphicon-download-alt glyphicon glyphicon-white'></i></a>
-            <ul class="dropdown-menu">
-              <li><a class='link' onClick='exportEventData("${id}", currentType, "csv")'>CSV</a></li>
-              <li><a class='link' onClick='exportEventData("${id}", currentType, "excel")'>Excel</a></li>
-            </ul>
-        </div> 
-        <div id='customtabview' role="group" class="btn-group pull-right">
-         <a id='btn-fullview' rel="tooltip" data-title="Full Data View" class="btn btn-default active" onClick='browseUpdate("full")'><i class='glyphicon glyphicon-th glyphicon glyphicon-white'></i></a>
-         <a id='btn-uniqueview' rel="tooltip" data-title="Unique Data View" class="btn btn-default" onClick='browseUpdate("unique")'><i class='glyphicon glyphicon-align-justify glyphicon glyphicon-white'></i></a>
-         <a id='btn-vizview' rel="tooltip" data-title="Visualize" class="btn btn-default dropdown-toggle" data-toggle="dropdown"><i class='glyphicon glyphicon-picture glyphicon glyphicon-white'></i></a>
-         <ul class="dropdown-menu">
-            <li><a class='link' onClick='browseUpdate("viz-bubble-data")'>Bubble (Data Element)</a></li>
-            <li><a class='link' onClick='browseUpdate("viz-bubble-source")'>Bubble (Source Data Element)</a></li>
-            <li><a class='link' onClick='browseUpdate("viz-dendro")'>Discovery Path</a></li>
-         </ul>
+    
+    <div class="scan-content">
+        <div id="scandata-container" class="data-container">
+            <!-- Dynamic content loaded here -->
         </div>
-        <div id='customvizview' class="btn-group pull-right">
-         <a id='btn-random' rel="tooltip" data-title="Random Layout" class="btn btn-default active" onClick='vizUpdate("random")'><b>R</b></a>
-         <a id='btn-forceatlas' rel="tooltip" data-title="Force Layout" class="btn btn-default" onClick='vizUpdate("force")'><b>F</b></a>
-         <a id='btn-saveimage' rel="tooltip" data-title="Save Image" class="btn btn-default dropdown-toggle" onClick='vizUpdate("download")'><i class='glyphicon glyphicon-picture glyphicon glyphicon-white'></i></a>
-        </div>
-        <div id='modifyactions' role="group" class="btn-group pull-right">
-            <a id='btn-setfp' rel="tooltip" data-title="Set/Unset False Positive flag" class="btn-warning btn btn-default dropdown-toggle" data-toggle="dropdown"><i class='glyphicon glyphicon-ban-circle glyphicon glyphicon-white'></i></a>
-            <ul class="dropdown-menu">
-                <li><a href='#' class='link' onClick='setFp(1)'>Set False Positive flag</a></li>
-                <li><a href='#' class='link' onClick='setFp(0)'>Unset False Positive flag</a></li>
-            </ul>
-        </div>
-  </div>
-    <script src="${docroot}/static/node_modules/sigma/build/sigma.min.js"></script>
-    <script src="${docroot}/static/node_modules/sigma/build/plugins/sigma.parsers.json.min.js"></script>
-    <script src="${docroot}/static/node_modules/sigma/build/plugins/sigma.plugins.dragNodes.min.js"></script>
-    <script src="${docroot}/static/node_modules/sigma/build/plugins/sigma.layout.forceAtlas2.min.js"></script>
-    <script src="${docroot}/static/node_modules/sigma/build/plugins/sigma.renderers.snapshot.min.js"></script>
-    <script type='text/javascript'>
+    </div>
+</div>
+
+<script src="${docroot}/static/node_modules/sigma/build/sigma.min.js"></script>
+<script src="${docroot}/static/node_modules/sigma/build/plugins/sigma.parsers.json.min.js"></script>
+<script src="${docroot}/static/node_modules/sigma/build/plugins/sigma.plugins.dragNodes.min.js"></script>
+<script src="${docroot}/static/node_modules/sigma/build/plugins/sigma.layout.forceAtlas2.min.js"></script>
+<script src="${docroot}/static/node_modules/sigma/build/plugins/sigma.renderers.snapshot.min.js"></script>
+<script type='text/javascript'>
         var currentType = "ALL";
         var currentTypeName = "All";
         var currentSection = "btn-browse";

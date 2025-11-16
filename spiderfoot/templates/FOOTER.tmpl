@@ -1,23 +1,31 @@
     </div>
-    <footer class="navbar-default navbar-fixed-bottom">
-      <div class="container-fluid text-center footer">
-        <%
-        messages = [
-            "<i class='glyphicon glyphicon-flash'></i>&nbsp;&nbsp;<a target=_new href='https://www.spiderfoot.net/hx'>Create a (free) Prism HX account in seconds and try it out for yourself.</a>",
-            "<i class='glyphicon glyphicon-flash'></i>&nbsp;&nbsp;<a target=_new href='https://www.spiderfoot.net/open-source-vs-hx'>Learn about Prism.</a>",
-            "<i class='glyphicon glyphicon-heart'></i>&nbsp;&nbsp;<a target=_new href='https://twitter.com/intent/follow?original_referer=https%3A%2F%2Fpublish.twitter.com%2F&ref_src=twsrc%5Etfw%7Ctwcamp%5Ebuttonembed%7Ctwterm%5Efollow%7Ctwgr%5Espiderfoot&screen_name=spiderfoot'>Follow SpiderFoot on Twitter for the latest updates.</a>",
-            "<i class='glyphicon glyphicon-education'></i>&nbsp;&nbsp;<a target=_new href='https://www.spiderfoot.net/documentation'>Check out the documentation.</a>",
-            "<i class='glyphicon glyphicon-heart'></i>&nbsp;&nbsp;<a target=_new href='https://discord.gg/vyvztrG'>Join the Prism community Discord!</a>",
-            "<i class='glyphicon glyphicon-console'></i>&nbsp;&nbsp;<a target=_new href='https://asciinema.org/~spiderfoot'>Did you know Prism also has a CLI? Check out our asciinema tutorials on how to use it.</a>",
-            "<i class='glyphicon glyphicon-flash'></i>&nbsp;&nbsp;<a target=_new href='https://www.spiderfoot.net/hx'>Want more OSINT automation capabilities? Check out SpiderFoot HX.</a>",
-            "<i class='glyphicon glyphicon-cloud'></i>&nbsp;&nbsp;<a target=_new href='https://www.spiderfoot.net/hx'>Don't want to manage your Prism installation yourself? Check out SpiderFoot HX.</a>",
-            "<i class='glyphicon glyphicon-film'></i>&nbsp;&nbsp;<a target=_new href='https://www.youtube.com/channel/UCujtHhVLNeiJA_3F-lghD-w'>Check out our YouTube channel to see SpiderFoot HX in action.</a>"
-        ]
+    <footer class="modern-footer">
+      <div class="footer-content">
+        <div class="footer-brand">
+          <span class="footer-title">OSINT Investigator</span>
+          <span class="footer-subtitle">Advanced Intelligence Gathering Platform</span>
+        </div>
+        <div class="footer-links">
+          <%
+          messages = [
+              "<i class='fas fa-rocket'></i>&nbsp;&nbsp;<a target='_blank' href='https://www.spiderfoot.net/hx'>Upgrade to Professional OSINT Tools</a>",
+              "<i class='fas fa-book-open'></i>&nbsp;&nbsp;<a target='_blank' href='https://www.spiderfoot.net/open-source-vs-hx'>Learn about Enhanced Features</a>",
+              "<i class='fas fa-heart'></i>&nbsp;&nbsp;<a target='_blank' href='https://twitter.com/intent/follow?original_referer=https%3A%2F%2Fpublish.twitter.com%2F&ref_src=twsrc%5Etfw%7Ctwcamp%5Ebuttonembed%7Ctwterm%5Efollow%7Ctwgr%5Espiderfoot&screen_name=spiderfoot'>Follow OSINT Community Updates</a>",
+              "<i class='fas fa-graduation-cap'></i>&nbsp;&nbsp;<a target='_blank' href='https://www.spiderfoot.net/documentation'>Comprehensive Documentation</a>",
+              "<i class='fas fa-users'></i>&nbsp;&nbsp;<a target='_blank' href='https://discord.gg/vyvztrG'>Join the Intelligence Community</a>",
+              "<i class='fas fa-terminal'></i>&nbsp;&nbsp;<a target='_blank' href='https://asciinema.org/~spiderfoot'>Command Line Interface Tutorials</a>",
+              "<i class='fas fa-cloud'></i>&nbsp;&nbsp;<a target='_blank' href='https://www.spiderfoot.net/hx'>Cloud-Based OSINT Solutions</a>",
+              "<i class='fas fa-play'></i>&nbsp;&nbsp;<a target='_blank' href='https://www.youtube.com/channel/UCujtHhVLNeiJA_3F-lghD-w'>Video Tutorials and Demonstrations</a>"
+          ]
 
-        import random
-        message = messages[random.randint(0, len(messages)-1)]
-        %>
-        <span>${message}</span>
+          import random
+          message = messages[random.randint(0, len(messages)-1)]
+          %>
+          <div class="footer-message">${message}</div>
+        </div>
+        <div class="footer-copyright">
+          <span>&copy; 2024 OSINT Investigator - Advanced Intelligence Platform</span>
+        </div>
       </div>
     </footer>
 

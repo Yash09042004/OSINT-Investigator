@@ -2,10 +2,10 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>Prism v${version}</title>
+    <title>OSINT Investigator v${version}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="">
-    <meta name="author" content="">
+    <meta name="description" content="Advanced OSINT Investigation Platform">
+    <meta name="author" content="OSINT Team">
     <link rel="icon" type="image/png" href="${docroot}/static/img/spiderfoot-icon.png">
 
     <script type='text/javascript' src='${docroot}/static/js/spiderfoot.js'></script>
@@ -28,14 +28,54 @@
             link.href = "${docroot}/static/node_modules/tablesorter/dist/css/theme.default.min.css";
         }
         head.appendChild(link);
-
-      
     </script>
+
+    <style>
+      /* Loading animation */
+      .page-loading {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        transition: opacity 0.5s ease;
+      }
+
+      .loader {
+        width: 50px;
+        height: 50px;
+        border: 4px solid rgba(255, 255, 255, 0.3);
+        border-top: 4px solid white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+
+      /* Hide loader when page loads */
+      body.loaded .page-loading {
+        opacity: 0;
+        pointer-events: none;
+      }
+    </style>
   </head>
 
   <body>
+    <!-- Loading Screen -->
+    <div class="page-loading">
+      <div class="loader"></div>
+    </div>
 
-<nav class="navbar navbar-fixed-top navbar-default">
+<!-- Modern Navigation Bar -->
+<nav class="navbar navbar-fixed-top glass">
   <div class="container-fluid">
     <!-- Brand and toggle get grouped for better mobile display -->
     <div class="navbar-header">
@@ -46,8 +86,14 @@
         <span class="icon-bar"></span>
       </button>
     </span>
-      <a class="navbar-brand brand-logo light" href="${docroot}/"><img class="spiderfoot-header-image" src="${docroot}/static/img/favi.png" /></a>
-      <a class="navbar-brand brand-logo dark" href="${docroot}/"><img class="spiderfoot-header-image" src="${docroot}/static/img/favi.png" /></a>
+      <a class="navbar-brand brand-logo light" href="${docroot}/">
+        <img class="spiderfoot-header-image" src="${docroot}/static/img/favi.png" />
+        <span style="margin-left: 10px; font-weight: 700; font-size: 20px; color: white;">OSINT Investigator</span>
+      </a>
+      <a class="navbar-brand brand-logo dark" href="${docroot}/">
+        <img class="spiderfoot-header-image" src="${docroot}/static/img/favi.png" />
+        <span style="margin-left: 10px; font-weight: 700; font-size: 20px; color: white;">OSINT Investigator</span>
+      </a>
     </div>
 
     <!-- Collect the nav links, forms, and other content for toggling -->
@@ -58,28 +104,26 @@
     class="active"
 % endif
 class="nav-item"
-><a id="nav-link-newscan" href="${docroot}/newscan"><i class="glyphicon glyphicon-screenshot"></i>&nbsp;New Scan</a></li>
+><a id="nav-link-newscan" href="${docroot}/newscan"><i class="glyphicon glyphicon-plus"></i>&nbsp;New Investigation</a></li>
         <li 
 % if pageid == "SCANLIST": 
     class="active"
 % endif
 class="nav-item"
-><a id="nav-link-scans" href="${docroot}/"><i class="glyphicon glyphicon-list"></i>&nbsp;Scans</a></li>
+><a id="nav-link-scans" href="${docroot}/"><i class="glyphicon glyphicon-search"></i>&nbsp;Investigations</a></li>
         <li
 % if pageid == "SETTINGS":
     class="active"
 %endif
-class="nav-item"><a id="nav-link-settings" href="${docroot}/opts" class="nav-link"><i class="glyphicon glyphicon-wrench"></i>&nbsp;Settings</a></li>
+class="nav-item"><a id="nav-link-settings" href="${docroot}/opts" class="nav-link"><i class="glyphicon glyphicon-cog"></i>&nbsp;Configuration</a></li>
  
       </ul>
 
 
-      
-      
       <ul class="nav navbar-nav navbar-right">
         <li>
         <!-- Theme toggler -->
-        <span id="toggler-text">Dark Mode</span>
+        <span id="toggler-text">🌙 Dark Mode</span>
         <label id="switcher4" class="switch">
           <input id="theme-toggler" class="theme-toggler" type="checkbox">
           <span class="slider round"></span>
@@ -92,18 +136,23 @@ class="nav-item"><a id="nav-link-settings" href="${docroot}/opts" class="nav-lin
   </div><!-- /.container-fluid -->
 </nav>
 
+    <!-- About Modal -->
     <div id="aboutmodal" class="modal fade" role="dialog" aria-hidden="true">
     <div class="modal-dialog" role="document">
-    <div class="modal-content">
+    <div class="modal-content glass">
 
     <div class="modal-header">
-      <h3 class="modal-title">Prism ${version}</h3>
+      <h3 class="modal-title">OSINT Investigator ${version}</h3>
     </div>
 
     <div class="modal-body">
-   <p>SpiderFoot is an open source, MIT-licensed footprinting tool, developed by a team of final year B.Tech IT students. It is designed to be easy to use, fast and extensible.</p>
+   <p><strong>OSINT Investigator</strong> is an advanced open source intelligence gathering platform, designed to automate and streamline digital investigations.</p>
 
-<p>If you have any bugs to report, or requests for enhancements, please contact the support mailing list at gmail.</p>
+   <p>This powerful tool integrates with over 200 data sources to help investigators, researchers, and security professionals gather comprehensive intelligence about their targets.</p>
+
+   <p>Built with modern web technologies and featuring an intuitive purple-gradient interface, OSINT Investigator makes complex investigations simple and efficient.</p>
+
+   <p>For support and documentation, visit our project repository or contact our development team.</p>
     </div>
 
     <div class="modal-footer">
@@ -124,6 +173,41 @@ class="nav-item"><a id="nav-link-settings" href="${docroot}/opts" class="nav-lin
     <script src='${docroot}/static/node_modules/tablesorter/dist/js/jquery.tablesorter.widgets.min.js'></script>
     <script src="${docroot}/static/node_modules/d3/d3.min.js"></script>
     <script type='text/javascript' hash="sha256-0kTZzWMEh3cdgCMVytlY1E8rg7oO13eyLa+kvyAhRmo=">sf.updateTooltips();</script>
+    
+    <script>
+      // Hide loading screen when page loads
+      $(document).ready(function() {
+        setTimeout(function() {
+          $('body').addClass('loaded');
+        }, 500);
+      });
+      
+      // Theme toggle functionality
+      $(document).ready(function() {
+        const themeToggle = document.getElementById('theme-toggler');
+        const toggleText = document.getElementById('toggler-text');
+        
+        // Check current theme
+        if (localStorage.getItem("theme") === "dark-theme") {
+          themeToggle.checked = true;
+          toggleText.textContent = '☀️ Light Mode';
+        } else {
+          toggleText.textContent = '🌙 Dark Mode';
+        }
+        
+        // Toggle theme
+        themeToggle.addEventListener('change', function() {
+          if (this.checked) {
+            localStorage.setItem("theme", "dark-theme");
+            toggleText.textContent = '☀️ Light Mode';
+          } else {
+            localStorage.removeItem("theme");
+            toggleText.textContent = '🌙 Dark Mode';
+          }
+          location.reload();
+        });
+      });
+    </script>
 
-    <div class="container" id="mainbody" style='padding-bottom: 50px'>
+    <div class="container glass" id="mainbody" style='padding: 30px; margin-top: 20px; margin-bottom: 20px; min-height: calc(100vh - 200px);'>
 

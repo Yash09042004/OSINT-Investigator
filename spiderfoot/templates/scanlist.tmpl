@@ -1,45 +1,71 @@
 <%include file="HEADER.tmpl"/>
-    <h2>Scans &nbsp;<img id="loader" src="${docroot}/static/img/loader.gif"></h2>
-<div id="scancontent">
-% if newscan:
-<div class="alert alert-success">
- <button type="button" class="close" data-dismiss="alert">&times;</button>
- <h4>Success!</h4>
- Scan '${newscan}' has successfully been initiated. Reload this page for up-to-date status on the scan.
-</div>
-% endif
-% if rerunscans:
-<div class="alert alert-success">
- <button type="button" class="close" data-dismiss="alert">&times;</button>
- <h4>Success!</h4>
- Scans have successfully been re-initiated as separate instances. Reload this page for up-to-date status on the scans.
-</div>
-% endif
-% if stoppedscan and len(errors) == 0:
-<div class="alert alert-warning">
- <button type="button" class="close" data-dismiss="alert">&times;</button>
- <h4>Scan aborted.</h4>
- Please allow a minute or two for the scan to cleanly shut itself down.
-</div>
-% endif
+<div class="main-content">
+    <div class="header-section">
+        <h2><i class="fas fa-list-ul"></i> Investigations <img id="loader" src="${docroot}/static/img/loader.gif"></h2>
+        <p class="subtitle">Manage and monitor your OSINT investigations</p>
+    </div>
+    
+    <div id="scancontent" class="scan-content">
+        % if newscan:
+        <div class="alert alert-success modern-alert">
+            <div class="alert-content">
+                <i class="fas fa-check-circle"></i>
+                <div class="alert-text">
+                    <h4>Investigation Started!</h4>
+                    <p>Investigation '<strong>${newscan}</strong>' has been successfully initiated. Refresh this page for updated status information.</p>
+                </div>
+            </div>
+            <button type="button" class="close-btn" data-dismiss="alert">&times;</button>
+        </div>
+        % endif
+        
+        % if rerunscans:
+        <div class="alert alert-success modern-alert">
+            <div class="alert-content">
+                <i class="fas fa-check-circle"></i>
+                <div class="alert-text">
+                    <h4>Investigations Restarted!</h4>
+                    <p>Selected investigations have been successfully re-initiated as separate instances. Refresh for updated status.</p>
+                </div>
+            </div>
+            <button type="button" class="close-btn" data-dismiss="alert">&times;</button>
+        </div>
+        % endif
+        
+        % if stoppedscan and len(errors) == 0:
+        <div class="alert alert-warning modern-alert">
+            <div class="alert-content">
+                <i class="fas fa-exclamation-triangle"></i>
+                <div class="alert-text">
+                    <h4>Investigation Stopped</h4>
+                    <p>The investigation has been aborted. Please allow a minute or two for the scan to cleanly shut down.</p>
+                </div>
+            </div>
+            <button type="button" class="close-btn" data-dismiss="alert">&times;</button>
+        </div>
+        % endif
 
-% if stoppedscan and len(errors) > 0:
-<div class="alert alert-warning">
- <button type="button" class="close" data-dismiss="alert">&times;</button>
- <h4>Error</h4>
- Some or all of the scans could not be aborted:<br>
-<ul>
-    % for err in errors:
-        <li>${err}</li>
-    % endfor
-</ul>
+        % if stoppedscan and len(errors) > 0:
+        <div class="alert alert-danger modern-alert">
+            <div class="alert-content">
+                <i class="fas fa-exclamation-circle"></i>
+                <div class="alert-text">
+                    <h4>Error Stopping Investigation</h4>
+                    <p>Some or all investigations could not be stopped:</p>
+                    <ul class="error-list">
+                        % for err in errors:
+                            <li>${err}</li>
+                        % endfor
+                    </ul>
+                </div>
+            </div>
+            <button type="button" class="close-btn" data-dismiss="alert">&times;</button>
+        </div>
+        % endif
+        <script type='text/javascript' src="${docroot}/static/js/spiderfoot.scanlist.js"></script>
+    </div>
+    
+    <iframe class='hidden' id='exportframe'></iframe>
 </div>
-
-% endif
-
-<script type='text/javascript' src="${docroot}/static/js/spiderfoot.scanlist.js"></script>
-</div>
-
-<iframe class='hidden' id='exportframe'></iframe>
 
 <%include file="FOOTER.tmpl"/>

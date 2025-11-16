@@ -1,199 +1,247 @@
 <%include file="HEADER.tmpl"/>
-    <script type='text/javascript' src='${docroot}/static/js/spiderfoot.opts.js'></script>
-    <h2>Settings</h2>
-% if updated:
-<div class="alert alert-success">
- <button type="button" class="close" data-dismiss="alert">&times;</button>
- <h4>Success!</h4>
- Settings updated. These will take effect the next time you run a scan.
-</div>
-% endif
-<form class="form" action='${docroot}/savesettings' id="savesettingsform" method='POST' enctype="multipart/form-data">
-<div class='text-left'>
-    <input type=hidden id='allopts' name='allopts' value=''>
-    <input type=hidden id='token' name='token' value="${token}">
-    <input type="file" name='configFile' id="configFile" class='hidden' onChange='$("#savesettingsform").submit()' />
-    <button id="btn-save-changes" class='btn btn-primary' type="submit">Save Changes</button>
-    <button id="btn-import-config" class='btn btn-info'>Import API Keys</button>
-    <button id="btn-opt-export" class='btn btn-info'>Export API Keys</button>
-    <button id="btn-reset-settings" class='btn btn-danger'>Reset to Factory Default</button>
-<br><br>
-</div>
+<script type='text/javascript' src='${docroot}/static/js/spiderfoot.opts.js'></script>
 
-<div class="tabbable tabs-left">
-<ul class="nav nav-pills nav-stacked col-md-3">
-<li id='tab_global' class="active"><a href="#">Global</a></li>
-% for mod in sorted(opts['__modules__'].keys()):
-    <% keylist = dict((k, v) for k, v in opts['__modules__'][mod]['opts'].items() if not k.startswith('_')) %>
-    % if len(keylist) > 0:
-        <% keyicon = "" %>
-        <% apikeylist = dict((k, v) for k, v in opts['__modules__'][mod]['opts'].items() if k.find("api_key") >= 0) %>
-        <% 
-        if len(apikeylist) > 0: 
-            keyicon = "&nbsp;&nbsp;<i class=\"glyphicon glyphicon-lock\"></i>"
-        %>
-        <li id='tab_${mod}'><a href='#' onclick='switchTab("${mod}");' >${opts['__modules__'][mod]['name']}${keyicon}</a></li>
-    % endif
-% endfor
-</ul>
-</div>
-
-<div class="tab-content col-md-9">
-
-<div id='optsect_global' class="tab-pane active">
-<h4>Global Settings</h4>
-<table class='table table-bordered table-striped'>
-<thead><tr> <th>Option</th> <th>Value</th></tr></thead><tbody>
-% for opt in sorted(opts.keys()):
-    % if not opt.startswith("__"):
-    <tr><td>${opts['__globaloptdescs__'].get(opt) or "No description available"}</td><td style='vertical-align: middle'>
-        % if type(opts[opt]) is int:
-        <div class='form-group'>
-            <input id='${opt}' class='form-control' type=text value="${opts[opt]}">
-        </div>
-        % endif
-        % if type(opts[opt]) is str:
-        <div class='form-group'>
-            <input id='${opt}' style='width: 500px' class='form-control' type=text value="${opts[opt]}">
-        </div>
-        % endif
-        % if type(opts[opt]) is bool:
-        <%
-            if opts[opt] == True:
-                seltrue = "selected"
-                selfalse = ""
-            else:
-                selfalse = "selected"  
-                seltrue = ""
-        %>
-            <select id='${opt}' class='form-control'>
-                <option value=1 ${seltrue}>True</option>
-                <option value=0 ${selfalse}>False</option>
-            </select>
-        % endif
-        % if type(opts[opt]) is list and type(opts[opt][0]) is str:
-            <% expandedopt = ','.join(opts[opt]) %>
-            <div class='form-group'>
-                <input id='${opt}' style='width: 500px' class='form-control' type=text value="${expandedopt}">
-            </div>
-        % endif
-        % if type(opts[opt]) is list and type(opts[opt][0]) is int:
-            <% expandedopt = ','.join(str(x) for x in opts[opt]) %>
-            <div class='form-group'>
-                <input id='${opt}' class='form-control' type=text value="${expandedopt}">
-            </div>
-        % endif
-    </td></tr>
-    % endif
-% endfor
-</tbody>
-</table>
-</div>
-% for mod in sorted(opts['__modules__'].keys()):
-    <%
-        summary = opts['__modules__'][mod].get('descr') or 'No summary available.'
-        categories = opts['__modules__'][mod].get('cats') or []
-        labels = opts['__modules__'][mod].get('labels') or []
-        meta = opts['__modules__'][mod].get('meta')
-        modopts = opts['__modules__'][mod].get('opts')
-        optdescs = opts['__modules__'][mod].get('optdescs')
-        data_source = meta.get('dataSource') or {}
-        website = data_source.get('website') or ''
-        description = data_source.get('description') or ''
-        apiKeyInstructions = data_source.get('apiKeyInstructions') or ''
-    %>
-    <div id='optsect_${mod}' class="tab-pane" style="display: none">
-    <h4>${opts['__modules__'][mod]['name']} (${mod})</h4>
-
-    <table class='table table-bordered table-striped'>
-    <tbody>
-    <tr><td>Summary</td><td>${summary}<br/><br/>${description}</td></tr>
-
-    % if categories:
-    <tr><td>Categories:</td><td>${', '.join(categories)}</td><tr>
-    % endif
-
-    % if labels:
-    <tr><td>Tags:</td><td>${', '.join(labels)}</td><tr>
-    % endif
-
-    % if website:
-    <tr><td>Website:</td><td><a href="${website}" target=_new>${website}</a></td></tr>
-    % endif
-
-    </tbody>
-    </table>
-
-    <h4>Settings</h4>
-    <table class='table table-bordered table-striped'>
-    <thead><tr><th>Option</th> <th>Value</th></tr></thead>
-    <tbody>
-
-    % for opt in sorted(modopts.keys()):
-        % if not opt.startswith("_"):
-            <tr>
-              <td>${optdescs.get(opt) or "No description available."}
-                % if "api_key" in opt:
-                    % if apiKeyInstructions:
-                        <%
-                            import re
-                            instructions = ""
-                            for step in apiKeyInstructions:
-                                if "https://" in step or "http://" in step:
-                                    step = re.sub(r'(https?://.[^ ]+)', '<a target=_new href=\'\\1\'>\\1</a>', step)
-                                instructions += f"<li>{step}</li>"
-                        %>
-                        &nbsp;&nbsp;<a href='#' data-html="true" data-toggle="popover" data-trigger="focus" title="Instructions" data-content="<ol>${instructions}</ol>"><i class="glyphicon glyphicon-question-sign"></i></a>
-                    % endif
-                % endif
-              </td>
-              <td style='vertical-align: middle'>
-            % if type(modopts[opt]) is int:
-                <div class='form-group'>
-                    <input id='${mod}:${opt}' class='form-control' type=text value="${modopts[opt]}">
-                </div>
-            % endif
-            % if type(modopts[opt]) is str:
-                <div class='form-group'>
-                    <input id='${mod}:${opt}' style='width: 500px' class='form-control' type=text value="${modopts[opt]}">
-                </div>
-            % endif
-            % if type(modopts[opt]) is bool:
-            <%
-                if modopts[opt] == True:
-                    seltrue = "selected"
-                    selfalse = ""
-                else:
-                    selfalse = "selected"
-                    seltrue = ""
-            %>
-                <select id='${mod}:${opt}' class='form-control'>
-                    <option value=1 ${seltrue}>True</option>
-                    <option value=0 ${selfalse}>False</option>
-                </select>
-            % endif
-            % if type(modopts[opt]) is list and type(modopts[opt][0]) is str:
-                <% expandedopt = ','.join(modopts[opt]) %>
-                <div class='form-group'>
-                    <input id='${mod}:${opt}' style='width: 500px' class='form-control' type=text value="${expandedopt}">
-                </div>
-            % endif
-            % if type(modopts[opt]) is list and type(modopts[opt][0]) is int:
-                <% expandedopt = ','.join(str(x) for x in modopts[opt]) %>
-                <div class='form-group'>
-                    <input id='${mod}:${opt}' class='form-control' type=text value="${expandedopt}">
-                </div>
-            % endif
-
-            </td></tr>
-        % endif
-    % endfor
-    </tbody>
-    </table>
+<div class="main-content">
+    <div class="header-section">
+        <h2><i class="fas fa-cogs"></i> Settings</h2>
+        <p class="subtitle">Configure OSINT Investigator modules and global settings</p>
     </div>
-% endfor
+    
+    % if updated:
+    <div class="alert alert-success modern-alert">
+        <div class="alert-content">
+            <i class="fas fa-check-circle"></i>
+            <div class="alert-text">
+                <h4>Settings Updated!</h4>
+                <p>Configuration changes saved successfully. These will take effect on your next investigation.</p>
+            </div>
+        </div>
+        <button type="button" class="close-btn" data-dismiss="alert">&times;</button>
+    </div>
+    % endif
+    
+    <div class="settings-container">
+        <form class="modern-form" action='${docroot}/savesettings' id="savesettingsform" method='POST' enctype="multipart/form-data">
+            <input type="hidden" id='allopts' name='allopts' value=''>
+            <input type="hidden" id='token' name='token' value="${token}">
+            <input type="file" name='configFile' id="configFile" class='hidden' onChange='$("#savesettingsform").submit()' />
+            
+            <div class="settings-toolbar">
+                <button id="btn-save-changes" class='btn btn-primary' type="submit">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+                <button id="btn-import-config" class='btn btn-info' type="button">
+                    <i class="fas fa-upload"></i> Import API Keys
+                </button>
+                <button id="btn-opt-export" class='btn btn-info' type="button">
+                    <i class="fas fa-download"></i> Export API Keys
+                </button>
+                <button id="btn-reset-settings" class='btn btn-danger' type="button">
+                    <i class="fas fa-undo"></i> Reset to Default
+                </button>
+            </div>
+
+            <div class="settings-layout">
+                <div class="settings-sidebar">
+                    <ul class="nav nav-pills nav-stacked settings-nav">
+                        <li id='tab_global' class="active">
+                            <a href="#" onclick="switchTab('global')">
+                                <i class="fas fa-globe"></i>
+                                <span>Global Settings</span>
+                            </a>
+                        </li>
+                        % for mod in sorted(opts['__modules__'].keys()):
+                            <% keylist = dict((k, v) for k, v in opts['__modules__'][mod]['opts'].items() if not k.startswith('_')) %>
+                            % if len(keylist) > 0:
+                                <% keyicon = "" %>
+                                <% apikeylist = dict((k, v) for k, v in opts['__modules__'][mod]['opts'].items() if k.find("api_key") >= 0) %>
+                                <% 
+                                if len(apikeylist) > 0: 
+                                    keyicon = "&nbsp;&nbsp;<i class=\"fas fa-key\"></i>"
+                                %>
+                                <li id='tab_${mod}'>
+                                    <a href='#' onclick='switchTab("${mod}");'>
+                                        <i class="fas fa-puzzle-piece"></i>
+                                        <span>${opts['__modules__'][mod]['name']}</span>
+                                        ${keyicon}
+                                    </a>
+                                </li>
+                            % endif
+                        % endfor
+                    </ul>
+                </div>
+
+                <div class="settings-main">
+                    <div id='optsect_global' class="tab-pane active settings-panel">
+                        <div class="settings-header">
+                            <h4><i class="fas fa-globe"></i> Global Settings</h4>
+                            <p>Configure system-wide options for OSINT Investigator</p>
+                        </div>
+                        
+                        <div class="settings-grid">
+                            % for opt in sorted(opts.keys()):
+                                % if not opt.startswith("__"):
+                                <div class="setting-item">
+                                    <div class="setting-label">
+                                        <label for="${opt}">${opts['__globaloptdescs__'].get(opt) or "No description available"}</label>
+                                    </div>
+                                    <div class="setting-control">
+                                        % if type(opts[opt]) is int:
+                                        <input id='${opt}' class='form-control' type="number" value="${opts[opt]}">
+                                        % endif
+                                        % if type(opts[opt]) is str:
+                                        <input id='${opt}' class='form-control' type="text" value="${opts[opt]}">
+                                        % endif
+                                        % if type(opts[opt]) is bool:
+                                        <%
+                                            if opts[opt] == True:
+                                                seltrue = "selected"
+                                                selfalse = ""
+                                            else:
+                                                selfalse = "selected"  
+                                                seltrue = ""
+                                        %>
+                                            <select id='${opt}' class='form-control'>
+                                                <option value="1" ${seltrue}>True</option>
+                                                <option value="0" ${selfalse}>False</option>
+                                            </select>
+                                        % endif
+                                        % if type(opts[opt]) is list and type(opts[opt][0]) is str:
+                                            <% expandedopt = ','.join(opts[opt]) %>
+                                            <input id='${opt}' class='form-control' type="text" value="${expandedopt}">
+                                        % endif
+                                        % if type(opts[opt]) is list and type(opts[opt][0]) is int:
+                                            <% expandedopt = ','.join(str(x) for x in opts[opt]) %>
+                                            <input id='${opt}' class='form-control' type="text" value="${expandedopt}">
+                                        % endif
+                                    </div>
+                                </div>
+                                % endif
+                            % endfor
+                        </div>
+                    </div>
+                    % for mod in sorted(opts['__modules__'].keys()):
+                        <%
+                            summary = opts['__modules__'][mod].get('descr') or 'No summary available.'
+                            categories = opts['__modules__'][mod].get('cats') or []
+                            labels = opts['__modules__'][mod].get('labels') or []
+                            meta = opts['__modules__'][mod].get('meta')
+                            modopts = opts['__modules__'][mod].get('opts')
+                            optdescs = opts['__modules__'][mod].get('optdescs')
+                            data_source = meta.get('dataSource') or {}
+                            website = data_source.get('website') or ''
+                            description = data_source.get('description') or ''
+                            apiKeyInstructions = data_source.get('apiKeyInstructions') or ''
+                        %>
+                        <div id='optsect_${mod}' class="tab-pane settings-panel" style="display: none">
+                            <div class="settings-header">
+                                <h4><i class="fas fa-puzzle-piece"></i> ${opts['__modules__'][mod]['name']}</h4>
+                                <p class="module-id">${mod}</p>
+                            </div>
+
+                            <div class="module-info">
+                                <div class="info-card">
+                                    <div class="info-row">
+                                        <strong>Summary:</strong> ${summary}
+                                        % if description:
+                                            <br><br>${description}
+                                        % endif
+                                    </div>
+
+                                    % if categories:
+                                    <div class="info-row">
+                                        <strong>Categories:</strong> 
+                                        <div class="tag-list">
+                                            % for cat in categories:
+                                                <span class="tag">${cat}</span>
+                                            % endfor
+                                        </div>
+                                    </div>
+                                    % endif
+
+                                    % if labels:
+                                    <div class="info-row">
+                                        <strong>Tags:</strong>
+                                        <div class="tag-list">
+                                            % for label in labels:
+                                                <span class="tag tag-label">${label}</span>
+                                            % endfor
+                                        </div>
+                                    </div>
+                                    % endif
+
+                                    % if website:
+                                    <div class="info-row">
+                                        <strong>Website:</strong> <a href="${website}" target="_blank" class="external-link">${website} <i class="fas fa-external-link-alt"></i></a>
+                                    </div>
+                                    % endif
+                                </div>
+                            </div>
+
+                            <div class="module-settings">
+                                <h5><i class="fas fa-cog"></i> Module Settings</h5>
+                                <div class="settings-grid">
+                                    % for opt in sorted(modopts.keys()):
+                                        % if not opt.startswith("_"):
+                                            <div class="setting-item">
+                                                <div class="setting-label">
+                                                    <label for="${mod}:${opt}">
+                                                        ${optdescs.get(opt) or "No description available."}
+                                                        % if "api_key" in opt and apiKeyInstructions:
+                                                            <%
+                                                                import re
+                                                                instructions = ""
+                                                                for step in apiKeyInstructions:
+                                                                    if "https://" in step or "http://" in step:
+                                                                        step = re.sub(r'(https?://.[^ ]+)', '<a target="_blank" href="\\1">\\1</a>', step)
+                                                                    instructions += f"<li>{step}</li>"
+                                                            %>
+                                                            <a href='#' class="help-icon" data-html="true" data-toggle="popover" data-trigger="focus" title="API Key Instructions" data-content="<ol>${instructions}</ol>">
+                                                                <i class="fas fa-question-circle"></i>
+                                                            </a>
+                                                        % endif
+                                                    </label>
+                                                </div>
+                                                <div class="setting-control">
+                                                    % if type(modopts[opt]) is int:
+                                                    <input id='${mod}:${opt}' class='form-control' type="number" value="${modopts[opt]}">
+                                                    % endif
+                                                    % if type(modopts[opt]) is str:
+                                                    <input id='${mod}:${opt}' class='form-control' type="text" value="${modopts[opt]}">
+                                                    % endif
+                                                    % if type(modopts[opt]) is bool:
+                                                    <%
+                                                        if modopts[opt] == True:
+                                                            seltrue = "selected"
+                                                            selfalse = ""
+                                                        else:
+                                                            selfalse = "selected"
+                                                            seltrue = ""
+                                                    %>
+                                                        <select id='${mod}:${opt}' class='form-control'>
+                                                            <option value="1" ${seltrue}>True</option>
+                                                            <option value="0" ${selfalse}>False</option>
+                                                        </select>
+                                                    % endif
+                                                    % if type(modopts[opt]) is list and type(modopts[opt][0]) is str:
+                                                        <% expandedopt = ','.join(modopts[opt]) %>
+                                                        <input id='${mod}:${opt}' class='form-control' type="text" value="${expandedopt}">
+                                                    % endif
+                                                    % if type(modopts[opt]) is list and type(modopts[opt][0]) is int:
+                                                        <% expandedopt = ','.join(str(x) for x in modopts[opt]) %>
+                                                        <input id='${mod}:${opt}' class='form-control' type="text" value="${expandedopt}">
+                                                    % endif
+                                                </div>
+                                            </div>
+                                        % endif
+                                    % endfor
+                                </div>
+                            </div>
+                        </div>
+                    % endfor
+                </div>
+            </div>
+        </form>
+    </div>
 </div>
-</div> <!-- /tabbable tabs-left -->
-</form>
-<br><br>
 <%include file="FOOTER.tmpl"/>
