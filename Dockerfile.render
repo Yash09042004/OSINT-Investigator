@@ -1,0 +1,100 @@
+# =============================================================================
+# PRISM - OSINT Automation Platform
+# Dockerfile for Render.com Deployment
+# =============================================================================
+# Authors: Mr. Yash Patil, Mr. Soumitra Bapat, Mr. Sharvari Jadhav
+# License: MIT
+#
+# Usage:
+#   Build:  docker build -f Dockerfile.render -t prism .
+#   Run:    docker run -p 10000:10000 prism
+#
+# For Render.com:
+#   - Set the Dockerfile path to: Dockerfile.render
+#   - The app will automatically bind to port 10000
+# =============================================================================
+
+# ---- Build Stage ----
+FROM python:3.11-slim-bookworm AS builder
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    g++ \
+    libffi-dev \
+    libssl-dev \
+    libxml2-dev \
+    libxslt1-dev \
+    libjpeg-dev \
+    zlib1g-dev \
+    python3-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create virtual environment
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+# ---- Production Stage ----
+FROM python:3.11-slim-bookworm AS production
+
+# Labels
+LABEL maintainer="PRISM Team" \
+      description="PRISM - OSINT Automation Platform" \
+      version="4.0"
+
+# Install runtime dependencies only
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libxml2 \
+    libxslt1.1 \
+    libjpeg62-turbo \
+    zlib1g \
+    libssl3 \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Create non-root user for security
+RUN groupadd -r prism && useradd -r -g prism -d /home/prism -s /sbin/nologin prism
+
+# Set working directory
+WORKDIR /home/prism
+
+# Environment variables
+ENV SPIDERFOOT_DATA=/var/lib/prism \
+    SPIDERFOOT_LOGS=/var/lib/prism/log \
+    SPIDERFOOT_CACHE=/var/lib/prism/cache \
+    PATH="/opt/venv/bin:$PATH" \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PORT=10000
+
+# Create data directories
+RUN mkdir -p $SPIDERFOOT_DATA $SPIDERFOOT_LOGS $SPIDERFOOT_CACHE \
+    && chown -R prism:prism /var/lib/prism
+
+# Copy virtual environment from builder
+COPY --from=builder /opt/venv /opt/venv
+
+# Copy application code
+COPY --chown=prism:prism . .
+
+# Set permissions
+RUN chown -R prism:prism /home/prism
+
+# Switch to non-root user
+USER prism
+
+# Expose port 10000 (Render's default)
+EXPOSE 10000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:10000/')" || exit 1
+
+# Start PRISM on port 10000
+# Render sets the PORT environment variable, but we default to 10000
+CMD ["sh", "-c", "python sf.py -l 0.0.0.0:${PORT:-10000}"]
