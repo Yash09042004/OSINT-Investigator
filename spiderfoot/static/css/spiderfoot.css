@@ -1,46 +1,161 @@
-/* Modern Purple Gradient Theme */
+/* Modern Purple Gradient Theme with CSS Variables */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
+/* ===== LIGHT MODE (DEFAULT) ===== */
 :root {
-  --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  --accent-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-  --dark-gradient: linear-gradient(135deg, #2c1810 0%, #5b2c6f 100%);
-  --light-gradient: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+  /* Background Colors */
+  --bg-primary: #f8f9fa;
+  --bg-secondary: #ffffff;
+  --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --bg-gradient-alt: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
   
+  /* Card Backgrounds */
+  --card-bg: rgba(255, 255, 255, 0.98);
+  --card-bg-hover: rgba(255, 255, 255, 1);
+  --card-border: rgba(102, 126, 234, 0.15);
+  
+  /* Text Colors - PURE BLACK for Light Mode */
+  --text-primary: #000000;
+  --text-secondary: #333333;
+  --text-tertiary: #666666;
+  --text-muted: #999999;
+  --text-inverse: #ffffff;
+  
+  /* Accent Colors */
+  --accent-color: #667eea;
+  --accent-color-hover: #5568d3;
+  --accent-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  
+  /* Primary & Secondary Colors */
   --primary-color: #667eea;
+  --primary-color-light: #8b9cff;
+  --primary-color-dark: #4a5bd5;
   --secondary-color: #764ba2;
-  --accent-color: #f093fb;
-  --text-primary: #2d3748;
-  --text-secondary: #4a5568;
-  --bg-light: #f7fafc;
-  --bg-card: rgba(255, 255, 255, 0.95);
-  --shadow: 0 10px 25px rgba(102, 126, 234, 0.15);
+  --secondary-color-light: #9b6bc8;
+  --secondary-color-dark: #5a3777;
+  
+  /* Status Colors */
+  --success-color: #22c55e;
+  --success-bg: rgba(34, 197, 94, 0.1);
+  --warning-color: #f59e0b;
+  --warning-bg: rgba(245, 158, 11, 0.1);
+  --error-color: #ef4444;
+  --error-bg: rgba(239, 68, 68, 0.1);
+  --info-color: #3b82f6;
+  --info-bg: rgba(59, 130, 246, 0.1);
+  
+  /* Shadows */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.12);
+  --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.15);
+  --shadow-accent: 0 4px 20px rgba(102, 126, 234, 0.25);
+  
+  /* Borders */
   --border-radius: 12px;
+  --border-radius-sm: 6px;
+  --border-radius-lg: 16px;
+  --border-color: #e5e7eb;
+  --border-color-dark: #d1d5db;
+  
+  /* Overlays */
+  --overlay-light: rgba(255, 255, 255, 0.9);
+  --overlay-dark: rgba(0, 0, 0, 0.5);
+  
+  /* Glassmorphism */
+  --glass-bg: rgba(255, 255, 255, 0.75);
+  --glass-border: rgba(255, 255, 255, 0.3);
+  --backdrop-blur: blur(20px);
 }
 
+/* ===== DARK MODE ===== */
+[data-theme='dark'] {
+  /* Background Colors */
+  --bg-primary: #0f0c29;
+  --bg-secondary: #1a1625;
+  --bg-gradient: linear-gradient(135deg, #2d1b69 0%, #1a1035 100%);
+  --bg-gradient-alt: linear-gradient(135deg, #8360c3 0%, #2ebf91 100%);
+  
+  /* Card Backgrounds - BLACK CARDS for Dark Mode */
+  --card-bg: rgba(0, 0, 0, 0.85);
+  --card-bg-hover: rgba(20, 20, 20, 0.95);
+  --card-border: rgba(102, 126, 234, 0.3);
+  
+  /* Text Colors - PURE WHITE for Dark Mode */
+  --text-primary: #ffffff;
+  --text-secondary: #e0e0e0;
+  --text-tertiary: #b0b0b0;
+  --text-muted: #808080;
+  --text-inverse: #000000;
+  
+  /* Accent Colors */
+  --accent-color: #8b9cff;
+  --accent-color-hover: #a5b3ff;
+  --accent-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  
+  /* Primary & Secondary Colors */
+  --primary-color: #8b9cff;
+  --primary-color-light: #a5b3ff;
+  --primary-color-dark: #6a7dea;
+  --secondary-color: #9b6bc8;
+  --secondary-color-light: #b589d6;
+  --secondary-color-dark: #7d4fa2;
+  
+  /* Status Colors */
+  --success-color: #4ade80;
+  --success-bg: rgba(74, 222, 128, 0.15);
+  --warning-color: #fbbf24;
+  --warning-bg: rgba(251, 191, 36, 0.15);
+  --error-color: #f87171;
+  --error-bg: rgba(248, 113, 113, 0.15);
+  --info-color: #60a5fa;
+  --info-bg: rgba(96, 165, 250, 0.15);
+  
+  /* Shadows */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.6);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.7);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.8);
+  --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.9);
+  --shadow-accent: 0 4px 20px rgba(139, 156, 255, 0.4);
+  
+  /* Borders */
+  --border-color: #374151;
+  --border-color-dark: #4b5563;
+  
+  /* Overlays */
+  --overlay-light: rgba(0, 0, 0, 0.7);
+  --overlay-dark: rgba(0, 0, 0, 0.9);
+  
+  /* Glassmorphism - Black glass for dark mode */
+  --glass-bg: rgba(0, 0, 0, 0.7);
+  --glass-border: rgba(102, 126, 234, 0.4);
+  --backdrop-blur: blur(30px);
+}
+
+/* ===== BASE STYLES ===== */
 * {
   box-sizing: border-box;
 }
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  background: var(--primary-gradient);
+  background: var(--bg-gradient);
   background-attachment: fixed;
   color: var(--text-primary);
   padding-top: 80px;
   line-height: 1.6;
   overflow-x: hidden;
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 /* Glassmorphism effect */
 .glass {
-  background: var(--bg-card);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--card-bg);
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
+  border: 1px solid var(--card-border);
   border-radius: var(--border-radius);
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-md);
 }
 
 .navbar-brand {
@@ -53,11 +168,11 @@ body {
 
 /* Navigation Styles */
 .navbar {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: var(--glass-bg);
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
   border: none;
-  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.1);
+  box-shadow: var(--shadow-lg);
   padding: 15px 0;
   transition: all 0.3s ease;
 }
@@ -71,10 +186,10 @@ body {
 }
 
 .navbar-nav > li > a {
-  color: white !important;
+  color: var(--text-inverse) !important;
   font-weight: 500;
   padding: 12px 20px !important;
-  border-radius: 8px;
+  border-radius: var(--border-radius-sm);
   margin: 0 5px;
   transition: all 0.3s ease;
   position: relative;
@@ -99,13 +214,13 @@ body {
 .navbar-nav > li > a:hover {
   background: rgba(255, 255, 255, 0.15);
   transform: translateY(-2px);
-  color: white !important;
+  color: var(--text-inverse) !important;
 }
 
 .navbar-nav > li.active > a {
   background: var(--accent-gradient);
-  color: white !important;
-  box-shadow: 0 4px 15px rgba(240, 147, 251, 0.4);
+  color: var(--text-inverse) !important;
+  box-shadow: var(--shadow-accent);
 }
 
 .brand-logo {
@@ -171,7 +286,7 @@ input:checked + .slider:before {
 }
 
 #toggler-text {
-  color: white;
+  color: var(--text-inverse);
   font-weight: 500;
   margin-right: 10px;
   vertical-align: middle;
@@ -180,21 +295,23 @@ input:checked + .slider:before {
 table {
   border-collapse: collapse;
   width: 100%;
-  background: var(--bg-card);
+  background: var(--card-bg);
   border-radius: var(--border-radius);
   overflow: hidden;
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-md);
+  color: var(--text-primary);
 }
 
 table td {
   word-wrap: break-word;
   padding: 15px;
   border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+  color: var(--text-primary);
 }
 
 table th {
   background: var(--primary-gradient);
-  color: white;
+  color: var(--text-inverse);
   padding: 15px;
   font-weight: 600;
   text-align: left;
@@ -299,13 +416,14 @@ a.link:hover {
 
 /* Card Styles */
 .panel, .card {
-  background: var(--bg-card);
+  background: var(--card-bg);
   border-radius: var(--border-radius);
   border: none;
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-md);
   margin-bottom: 20px;
   overflow: hidden;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  color: var(--text-primary);
 }
 
 .panel:hover, .card:hover {
@@ -315,7 +433,7 @@ a.link:hover {
 
 .panel-header, .card-header {
   background: var(--primary-gradient);
-  color: white;
+  color: var(--text-inverse);
   padding: 20px;
   font-weight: 600;
   font-size: 18px;
@@ -323,11 +441,13 @@ a.link:hover {
 
 .panel-body, .card-body {
   padding: 25px;
+  color: var(--text-primary);
 }
 
 .panel-default {
-  background-color: var(--bg-card) !important;
+  background-color: var(--card-bg) !important;
   border: none !important;
+  color: var(--text-primary) !important;
 }
 
 /* Form Styles */
@@ -339,6 +459,7 @@ a.link:hover {
   transition: all 0.3s ease;
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(10px);
+  color: var(--text-primary);
 }
 
 .form-control:focus {
@@ -346,6 +467,7 @@ a.link:hover {
   border-color: var(--primary-color);
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
   background: white;
+  color: var(--text-primary);
 }
 
 .input-group {
@@ -1593,3 +1715,805 @@ input:checked + .slider:before {
         font-size: 1rem;
     }
 }
+
+/* ===== FORCE TEXT COLORS WITH CSS VARIABLES ===== */
+/* These rules ensure ALL text elements respect the theme */
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+    color: var(--text-primary) !important;
+}
+
+/* Paragraphs and spans */
+p, span, div {
+    color: var(--text-primary);
+}
+
+/* Lists */
+ul, ol, li {
+    color: var(--text-primary);
+}
+
+/* Table elements with forced inheritance */
+table, 
+table td, 
+table th, 
+table tr {
+    color: inherit;
+}
+
+/* Table headers stay white/inverse */
+table th {
+    color: var(--text-inverse) !important;
+}
+
+/* Table data cells use primary text */
+table td {
+    color: var(--text-primary) !important;
+}
+
+/* Form elements */
+input, textarea, select {
+    color: var(--text-primary) !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: var(--text-muted) !important;
+}
+
+/* Links - maintain their own color scheme */
+a {
+    color: var(--accent-color);
+    text-decoration: none;
+}
+
+a:hover {
+    color: var(--accent-color-hover);
+}
+
+/* Code and pre elements */
+code, pre {
+    color: var(--text-primary);
+    background: rgba(102, 126, 234, 0.05);
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+}
+
+/* Buttons keep their specific colors */
+.btn, button {
+    color: var(--text-inverse);
+}
+
+/* Navigation specific overrides */
+.navbar,
+.navbar * {
+    color: var(--text-inverse) !important;
+}
+
+.navbar-nav > li > a {
+    color: var(--text-inverse) !important;
+}
+
+/* Modal content */
+.modal-body,
+.modal-body * {
+    color: var(--text-primary);
+}
+
+.modal-header,
+.modal-header * {
+    color: var(--text-inverse) !important;
+}
+
+/* Alert text should remain as configured for contrast */
+.alert-info {
+    color: var(--info-color) !important;
+}
+
+.alert-success {
+    color: var(--success-color) !important;
+}
+
+.alert-warning {
+    color: var(--warning-color) !important;
+}
+
+.alert-danger {
+    color: var(--error-color) !important;
+}
+
+/* Dark mode specific overrides */
+[data-theme='dark'] {
+    /* Ensure all text is white in dark mode */
+    body,
+    body *:not(.btn):not(button):not(a):not(.navbar *):not(.modal-header *):not(table th) {
+        color: var(--text-primary);
+    }
+    
+    /* BLACK CARDS in Dark Mode */
+    .panel, .card,
+    .info-card,
+    .tab-content-container,
+    .settings-panel,
+    .settings-sidebar,
+    .settings-toolbar,
+    .scan-header,
+    .scan-content {
+        background: rgba(0, 0, 0, 0.85) !important;
+        color: var(--text-primary) !important;
+        border-color: rgba(102, 126, 234, 0.3) !important;
+    }
+    
+    /* BLACK TABLES in Dark Mode */
+    table {
+        background: rgba(0, 0, 0, 0.85) !important;
+        color: var(--text-primary) !important;
+    }
+    
+    /* WHITE text in table cells */
+    table td {
+        background: transparent !important;
+        color: var(--text-primary) !important;
+    }
+    
+    /* BLACK headers with WHITE text (keep gradient) */
+    table th {
+        background: var(--accent-gradient) !important;
+        color: var(--text-inverse) !important;
+    }
+    
+    /* BLACK FORMS in Dark Mode */
+    .form-control,
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    textarea,
+    select {
+        background: rgba(0, 0, 0, 0.6) !important;
+        color: var(--text-primary) !important;
+        border-color: rgba(102, 126, 234, 0.3) !important;
+    }
+    
+    /* WHITE text in form controls on focus */
+    .form-control:focus,
+    input:focus,
+    textarea:focus,
+    select:focus {
+        background: rgba(0, 0, 0, 0.8) !important;
+        color: var(--text-primary) !important;
+        border-color: var(--accent-color) !important;
+    }
+    
+    /* BLACK MODALS in Dark Mode */
+    .modal-content {
+        background: rgba(0, 0, 0, 0.95) !important;
+        color: var(--text-primary) !important;
+    }
+    
+    .modal-body {
+        background: rgba(0, 0, 0, 0.85) !important;
+        color: var(--text-primary) !important;
+    }
+    
+    /* Modal header keeps gradient with white text */
+    .modal-header {
+        background: var(--accent-gradient) !important;
+        color: var(--text-inverse) !important;
+    }
+    
+    /* BLACK ALERTS in Dark Mode with proper contrast */
+    .alert,
+    .modern-alert {
+        background: rgba(0, 0, 0, 0.7) !important;
+        border: 1px solid rgba(102, 126, 234, 0.3) !important;
+    }
+    
+    .alert-success {
+        background: rgba(0, 0, 0, 0.7) !important;
+        color: var(--success-color) !important;
+        border-color: var(--success-color) !important;
+    }
+    
+    .alert-warning {
+        background: rgba(0, 0, 0, 0.7) !important;
+        color: var(--warning-color) !important;
+        border-color: var(--warning-color) !important;
+    }
+    
+    .alert-danger {
+        background: rgba(0, 0, 0, 0.7) !important;
+        color: var(--error-color) !important;
+        border-color: var(--error-color) !important;
+    }
+    
+    .alert-info {
+        background: rgba(0, 0, 0, 0.7) !important;
+        color: var(--info-color) !important;
+        border-color: var(--info-color) !important;
+    }
+    
+    /* Navigation stays inverse (white) */
+    .navbar,
+    .navbar *,
+    .navbar-nav > li > a {
+        color: var(--text-inverse) !important;
+    }
+    
+    /* Ensure navbar has proper dark background */
+    .navbar {
+        background: rgba(0, 0, 0, 0.7) !important;
+    }
+    
+    /* Table data must be white in dark mode */
+    table td,
+    table td *:not(a):not(button) {
+        color: var(--text-primary) !important;
+    }
+    
+    /* BLACK dropdown menus */
+    .dropdown-menu {
+        background: rgba(0, 0, 0, 0.9) !important;
+        border-color: rgba(102, 126, 234, 0.3) !important;
+    }
+    
+    .dropdown-menu li a {
+        color: var(--text-primary) !important;
+    }
+    
+    .dropdown-menu li a:hover {
+        background: rgba(139, 156, 255, 0.2) !important;
+    }
+    
+    /* BLACK search controls */
+    .search-input-group {
+        background: rgba(0, 0, 0, 0.7) !important;
+        border-color: rgba(102, 126, 234, 0.3) !important;
+    }
+    
+    .search-input {
+        background: transparent !important;
+        color: var(--text-primary) !important;
+    }
+    
+    /* Utility buttons in dark mode */
+    .utility-buttons .btn {
+        background: rgba(0, 0, 0, 0.7) !important;
+        color: var(--text-primary) !important;
+        border-color: rgba(102, 126, 234, 0.3) !important;
+    }
+    
+    .utility-buttons .btn:hover {
+        background: rgba(139, 156, 255, 0.2) !important;
+        color: var(--accent-color) !important;
+    }
+    
+    /* BLACK tabs background */
+    .modern-tabs > li > a {
+        background: rgba(0, 0, 0, 0.7) !important;
+        color: var(--text-secondary) !important;
+        border-color: rgba(102, 126, 234, 0.3) !important;
+    }
+    
+    .modern-tabs > li > a:hover {
+        background: var(--accent-color) !important;
+        color: var(--text-inverse) !important;
+    }
+    
+    .modern-tabs > li.active > a {
+        background: var(--accent-color) !important;
+        color: var(--text-inverse) !important;
+    }
+    
+    /* BLACK info cards */
+    .info-card {
+        background: rgba(0, 0, 0, 0.85) !important;
+        border-color: rgba(102, 126, 234, 0.3) !important;
+    }
+    
+    /* BLACK target type boxes */
+    .target-type {
+        background: rgba(0, 0, 0, 0.4) !important;
+        border-color: var(--accent-color) !important;
+    }
+    
+    .target-type strong {
+        color: var(--text-primary) !important;
+    }
+    
+    .target-type code {
+        background: rgba(139, 156, 255, 0.2) !important;
+        color: var(--accent-color) !important;
+    }
+    
+    /* BLACK scrollbar track */
+    ::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.3) !important;
+    }
+    
+    /* Forms must be white in dark mode */
+    input, textarea, select,
+    .form-control {
+        color: var(--text-primary) !important;
+    }
+    
+    /* Placeholders in dark mode */
+    input::placeholder,
+    textarea::placeholder {
+        color: var(--text-muted) !important;
+    }
+    
+    /* Labels must be white in dark mode */
+    label {
+        color: var(--text-primary) !important;
+    }
+    
+    /* Cards and panels must be white in dark mode */
+    .panel, .card,
+    .panel *, .card * {
+        color: var(--text-primary);
+    }
+    
+    /* Panel headers stay white */
+    .panel-header, .card-header,
+    .panel-header *, .card-header * {
+        color: var(--text-inverse) !important;
+    }
+    
+    /* Ensure proper background for panel default */
+    .panel-default {
+        background: rgba(0, 0, 0, 0.85) !important;
+        color: var(--text-primary) !important;
+    }
+    
+    /* Status badges remain readable */
+    .status-badge {
+        background: rgba(0, 0, 0, 0.7) !important;
+        border: 1px solid rgba(102, 126, 234, 0.3) !important;
+    }
+    
+    /* Footer in dark mode */
+    .footer {
+        background: rgba(0, 0, 0, 0.5) !important;
+        color: var(--text-primary) !important;
+    }
+    
+    /* Ensure settings nav items are readable */
+    .settings-nav a {
+        color: var(--text-secondary) !important;
+    }
+    
+    .settings-nav li.active a {
+        background: var(--accent-color) !important;
+        color: var(--text-inverse) !important;
+    }
+    
+    .settings-nav a:hover {
+        background: rgba(139, 156, 255, 0.2) !important;
+        color: var(--accent-color) !important;
+    }
+}
+
+/* Light mode specific overrides */
+:root,
+body:not([data-theme='dark']) {
+    /* Ensure all text is black in light mode */
+    body,
+    body *:not(.btn):not(button):not(.navbar *):not(.modal-header *):not(table th) {
+        color: var(--text-primary);
+    }
+    
+    /* Navigation stays inverse (white) */
+    .navbar,
+    .navbar *,
+    .navbar-nav > li > a {
+        color: var(--text-inverse) !important;
+    }
+    
+    /* Table headers stay inverse (white in light mode) */
+    table th {
+        color: var(--text-inverse) !important;
+    }
+    
+    /* Table data must be black in light mode */
+    table td,
+    table td *:not(a):not(button) {
+        color: var(--text-primary) !important;
+    }
+}
+
+/* Special cases - elements that should always be inverse color */
+.navbar-brand,
+.navbar-header,
+.btn-primary,
+.btn-success,
+.btn-info,
+.btn-secondary,
+.badge,
+.status-badge {
+    color: var(--text-inverse) !important;
+}
+
+/* Ensure proper contrast for specific UI elements */
+.modern-tabs > li.active > a,
+.modern-tabs > li.active > a * {
+    color: var(--text-inverse) !important;
+}
+
+.modern-tabs > li > a {
+    color: var (--text-secondary) !important;
+}
+
+.modern-tabs > li > a:hover {
+    color: var(--text-inverse) !important;
+}
+
+/* Footer text */
+.modern-footer,
+.modern-footer * {
+    color: var(--text-inverse) !important;
+}
+
+/* Target type styling */
+.target-type strong {
+    color: var(--text-primary) !important;
+}
+
+/* Use case descriptions */
+.use-case-description,
+.module-description {
+    color: var(--text-secondary) !important;
+}
+
+/* Settings page text */
+.settings-nav a {
+    color: var(--text-secondary) !important;
+}
+
+.settings-nav li.active a,
+.settings-nav li.active a * {
+    color: var(--text-inverse) !important;
+}
+
+/* Info headers */
+.info-header {
+    color: var(--accent-color) !important;
+}
+
+/* Ensure readability of all content */
+.main-content,
+.scan-content,
+.settings-panel {
+    color: var(--text-primary);
+}
+
+/* End of forced text colors */
+
+/* ===== AGGRESSIVE DARK MODE OVERRIDES ===== */
+/* These rules ensure dark mode ALWAYS shows black cards with white text */
+
+[data-theme='dark'] {
+    /* Force body background to be dark */
+    body {
+        background: var(--bg-gradient) !important;
+        color: #ffffff !important;
+    }
+    
+    /* ALL CARDS MUST BE BLACK */
+    .panel,
+    .card,
+    .panel-body,
+    .card-body,
+    .info-card,
+    .scan-form-container,
+    .tab-content-container,
+    .settings-panel,
+    .scan-header,
+    .scan-content,
+    .modern-alert,
+    .settings-toolbar {
+        background: rgba(0, 0, 0, 0.85) !important;
+        color: #ffffff !important;
+    }
+    
+    /* Panel/Card borders for visibility */
+    .panel,
+    .card,
+    .info-card,
+    .tab-content-container,
+    .settings-panel,
+    .scan-header,
+    .scan-content {
+        border: 1px solid rgba(102, 126, 234, 0.3) !important;
+    }
+    
+    /* ALL TEXT MUST BE WHITE */
+    .panel *,
+    .card *,
+    .panel-body *,
+    .card-body *,
+    .info-card *,
+    .tab-content-container *,
+    .settings-panel *,
+    .scan-content *,
+    .main-content *,
+    p, span, div, li, td, th, label, h1, h2, h3, h4, h5, h6 {
+        color: #ffffff !important;
+    }
+    
+    /* TABLES: Black background, white text */
+    table {
+        background: rgba(0, 0, 0, 0.85) !important;
+        color: #ffffff !important;
+    }
+    
+    table td {
+        background: transparent !important;
+        color: #ffffff !important;
+        border-bottom: 1px solid rgba(102, 126, 234, 0.2) !important;
+    }
+    
+    table th {
+        background: var(--accent-gradient) !important;
+        color: #ffffff !important;
+    }
+    
+    /* FORMS: Black inputs with white text */
+    input, 
+    textarea, 
+    select,
+    .form-control {
+        background: rgba(0, 0, 0, 0.6) !important;
+        color: #ffffff !important;
+        border: 1px solid rgba(102, 126, 234, 0.3) !important;
+    }
+    
+    input::placeholder,
+    textarea::placeholder {
+        color: #808080 !important;
+    }
+    
+    input:focus,
+    textarea:focus,
+    select:focus,
+    .form-control:focus {
+        background: rgba(0, 0, 0, 0.8) !important;
+        color: #ffffff !important;
+        border-color: var(--accent-color) !important;
+    }
+    
+    /* BUTTONS: Keep gradient but ensure white text */
+    .btn {
+        color: #ffffff !important;
+    }
+    
+    /* NAVIGATION: Keep as is (white on gradient) */
+    .navbar {
+        background: rgba(0, 0, 0, 0.7) !important;
+        backdrop-filter: blur(30px) !important;
+    }
+    
+    .navbar,
+    .navbar *,
+    .navbar-nav > li > a,
+    #toggler-text {
+        color: #ffffff !important;
+    }
+    
+    /* TABS: Active tabs white on gradient, inactive white on black */
+    .modern-tabs > li > a {
+        background: rgba(0, 0, 0, 0.85) !important;
+        color: #ffffff !important;
+        border: 1px solid rgba(102, 126, 234, 0.3) !important;
+    }
+    
+    .modern-tabs > li.active > a,
+    .modern-tabs > li > a:hover {
+        background: var(--accent-gradient) !important;
+        color: #ffffff !important;
+    }
+    
+    .nav-tabs > li > a {
+        color: #ffffff !important;
+    }
+    
+    .nav-tabs > li.active > a {
+        background: var(--accent-gradient) !important;
+        color: #ffffff !important;
+    }
+    
+    /* MODALS: Black body with white text, gradient header */
+    .modal-content {
+        background: rgba(0, 0, 0, 0.95) !important;
+    }
+    
+    .modal-body {
+        background: rgba(0, 0, 0, 0.95) !important;
+        color: #ffffff !important;
+    }
+    
+    .modal-body * {
+        color: #ffffff !important;
+    }
+    
+    .modal-header {
+        background: var(--accent-gradient) !important;
+        color: #ffffff !important;
+    }
+    
+    .modal-header * {
+        color: #ffffff !important;
+    }
+    
+    /* ALERTS: Black with colored borders */
+    .alert,
+    .modern-alert {
+        background: rgba(0, 0, 0, 0.85) !important;
+    }
+    
+    .alert-success {
+        background: rgba(0, 0, 0, 0.85) !important;
+        color: #4ade80 !important;
+        border-left: 4px solid #4ade80 !important;
+    }
+    
+    .alert-warning {
+        background: rgba(0, 0, 0, 0.85) !important;
+        color: #fbbf24 !important;
+        border-left: 4px solid #fbbf24 !important;
+    }
+    
+    .alert-danger {
+        background: rgba(0, 0, 0, 0.85) !important;
+        color: #f87171 !important;
+        border-left: 4px solid #f87171 !important;
+    }
+    
+    .alert-info {
+        background: rgba(0, 0, 0, 0.85) !important;
+        color: #60a5fa !important;
+        border-left: 4px solid #60a5fa !important;
+    }
+    
+    /* LISTS: White text */
+    ul, ol, li {
+        color: #ffffff !important;
+    }
+    
+    /* LABELS: White text */
+    label {
+        color: #ffffff !important;
+    }
+    
+    /* CODE/PRE: Black with white text */
+    code, pre {
+        background: rgba(0, 0, 0, 0.6) !important;
+        color: #ffffff !important;
+    }
+    
+    /* LINKS: Purple/accent color */
+    a {
+        color: var(--accent-color) !important;
+    }
+    
+    a:hover {
+        color: var(--accent-color-hover) !important;
+    }
+    
+    /* SETTINGS SIDEBAR: Black with white text */
+    .settings-sidebar {
+        background: rgba(0, 0, 0, 0.85) !important;
+    }
+    
+    .settings-nav a {
+        color: #ffffff !important;
+    }
+    
+    .settings-nav li.active a {
+        background: var(--accent-gradient) !important;
+        color: #ffffff !important;
+    }
+    
+    /* INFO CARDS: Black with white text */
+    .info-content {
+        color: #ffffff !important;
+    }
+    
+    .target-type {
+        background: rgba(0, 0, 0, 0.6) !important;
+        border-left: 3px solid var(--accent-color) !important;
+    }
+    
+    .target-type strong {
+        color: #ffffff !important;
+    }
+    
+    .target-type code {
+        background: rgba(102, 126, 234, 0.2) !important;
+        color: var(--accent-color) !important;
+    }
+    
+    /* USE CASE ROWS: Black hover */
+    .use-case-row:hover,
+    .module-row:hover,
+    .data-type-row:hover {
+        background: rgba(102, 126, 234, 0.1) !important;
+    }
+    
+    /* FOOTER: Keep gradient */
+    .footer {
+        background: transparent !important;
+        color: #ffffff !important;
+    }
+    
+    /* SCROLLBAR: Dark */
+    ::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.3) !important;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: var(--accent-gradient) !important;
+    }
+    
+    /* PANEL DEFAULT */
+    .panel-default {
+        background: rgba(0, 0, 0, 0.85) !important;
+        color: #ffffff !important;
+    }
+    
+    /* DROPDOWN MENUS */
+    .dropdown-menu {
+        background: rgba(0, 0, 0, 0.95) !important;
+        border: 1px solid rgba(102, 126, 234, 0.3) !important;
+    }
+    
+    .dropdown-menu a {
+        color: #ffffff !important;
+    }
+    
+    .dropdown-menu a:hover {
+        background: rgba(102, 126, 234, 0.2) !important;
+    }
+    
+    /* HELP TEXT */
+    .help-block {
+        color: #e0e0e0 !important;
+    }
+    
+    /* STATUS BADGES */
+    .status-badge {
+        color: #ffffff !important;
+    }
+    
+    /* SCAN TOOLBAR */
+    .scan-toolbar,
+    .toolbar-section {
+        background: transparent !important;
+    }
+    
+    /* ACTION BUTTONS */
+    .action-buttons .btn {
+        background: rgba(0, 0, 0, 0.6) !important;
+        color: #ffffff !important;
+        border: 1px solid rgba(102, 126, 234, 0.3) !important;
+    }
+    
+    .action-buttons .btn:hover {
+        background: var(--accent-gradient) !important;
+        color: #ffffff !important;
+    }
+    
+    /* SEARCH INPUT */
+    .search-input {
+        background: rgba(0, 0, 0, 0.6) !important;
+        color: #ffffff !important;
+    }
+    
+    .search-input-group {
+        background: rgba(0, 0, 0, 0.6) !important;
+        border: 1px solid rgba(102, 126, 234, 0.3) !important;
+    }
+}
+
+/* END OF AGGRESSIVE DARK MODE OVERRIDES */

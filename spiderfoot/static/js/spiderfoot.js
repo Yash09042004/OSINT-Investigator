@@ -9,45 +9,42 @@
 // Licence:     MIT
 //-------------------------------------------------------------------------------
 
-// Toggler for theme
+// Modern Theme Toggler using CSS Variables
 document.addEventListener("DOMContentLoaded", () => {
   const themeToggler = document.getElementById("theme-toggler");
-  const head = document.getElementsByTagName("HEAD")[0];
   const togglerText = document.getElementById("toggler-text");
-  let link = document.createElement("link");
+  const htmlElement = document.documentElement;
 
-  if (localStorage.getItem("mode") === "Light Mode") {
-    togglerText.innerText = "Dark Mode";
-    document.getElementById("theme-toggler").checked = true; // ensure theme toggle is set to dark
-  } else { // initial mode ist null
-    togglerText.innerText = "Light Mode";
-    document.getElementById("theme-toggler").checked = false; // ensure theme toggle is set to light
+  // Check for saved theme preference or default to 'light'
+  const currentTheme = localStorage.getItem("theme") || "light";
+  
+  // Apply the theme on page load
+  if (currentTheme === "dark") {
+    htmlElement.setAttribute("data-theme", "dark");
+    if (themeToggler) themeToggler.checked = true;
+    if (togglerText) togglerText.innerText = "🌙 Dark";
+  } else {
+    htmlElement.removeAttribute("data-theme");
+    if (themeToggler) themeToggler.checked = false;
+    if (togglerText) togglerText.innerText = "☀️ Light";
   }
 
-
-  themeToggler.addEventListener("click", () => {
-    togglerText.innerText = "Light Mode";
-
-    if (localStorage.getItem("theme") === "dark-theme") {
-      localStorage.removeItem("theme");
-      localStorage.setItem("mode", "Dark Mode");
-      link.rel = "stylesheet";
-      link.type = "text/css";
-      link.href = "${docroot}/static/css/spiderfoot.css";
-
-      head.appendChild(link);
-      location.reload();
-    } else {
-      localStorage.setItem("theme", "dark-theme");
-      localStorage.setItem("mode", "Light Mode");
-      link.rel = "stylesheet";
-      link.type = "text/css";
-      link.href = "${docroot}/static/css/dark.css";
-
-      head.appendChild(link);
-      location.reload();
-    }
-  });
+  // Theme toggle event listener
+  if (themeToggler) {
+    themeToggler.addEventListener("change", () => {
+      if (themeToggler.checked) {
+        // Switch to dark mode
+        htmlElement.setAttribute("data-theme", "dark");
+        localStorage.setItem("theme", "dark");
+        if (togglerText) togglerText.innerText = "🌙 Dark";
+      } else {
+        // Switch to light mode
+        htmlElement.removeAttribute("data-theme");
+        localStorage.setItem("theme", "light");
+        if (togglerText) togglerText.innerText = "☀️ Light";
+      }
+    });
+  }
 });
 
 var sf = {};
@@ -195,4 +192,25 @@ sf.log = function (message) {
       pad(currentdate.getSeconds());
     console.log("[" + datetime + "] " + message);
   }
+};
+
+// Modern download helper function
+sf.downloadFile = function(url, logMessage) {
+  if (logMessage) {
+    sf.log(logMessage);
+  }
+  
+  // Create a temporary link element
+  var link = document.createElement('a');
+  link.href = url;
+  link.style.display = 'none';
+  
+  // Add to document, click, and remove
+  document.body.appendChild(link);
+  link.click();
+  
+  // Clean up after a short delay
+  setTimeout(function() {
+    document.body.removeChild(link);
+  }, 100);
 };

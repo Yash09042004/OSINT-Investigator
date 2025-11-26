@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theme Diagnostic Test</title>
+    <link rel="stylesheet" href="spiderfoot/static/css/spiderfoot.css">
+    <style>
+        .diagnostic-container {
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .test-card {
+            margin: 20px 0;
+            padding: 20px;
+        }
+        .controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        [data-theme='dark'] .controls {
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+        }
+        .info-box {
+            background: rgba(59, 130, 246, 0.1);
+            border-left: 4px solid #3b82f6;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <h3 style="margin: 0 0 10px 0;">Theme Control</h3>
+        <label>
+            <input type="checkbox" id="theme-toggler">
+            <span id="toggler-text">☀️ Light</span>
+        </label>
+        <div style="margin-top: 10px; font-size: 12px;">
+            <div>Current theme: <strong id="current-theme">light</strong></div>
+            <div>localStorage: <strong id="local-storage-theme">-</strong></div>
+            <div>data-theme attr: <strong id="data-theme-attr">-</strong></div>
+        </div>
+    </div>
+
+    <div class="diagnostic-container">
+        <h1>SpiderFoot Dark Mode Diagnostic</h1>
+        
+        <div class="info-box">
+            <h3>Instructions</h3>
+            <p>Toggle the checkbox in the top-right corner to switch between light and dark mode.</p>
+            <p>In dark mode, all cards below should have:</p>
+            <ul>
+                <li>Black background (rgba(0, 0, 0, 0.85))</li>
+                <li>White text (#ffffff)</li>
+                <li>Purple border (rgba(102, 126, 234, 0.3))</li>
+            </ul>
+        </div>
+
+        <div class="panel test-card">
+            <h2>Test Card 1 - Panel</h2>
+            <p>This is a paragraph inside a panel. It should be white text in dark mode.</p>
+            <ul>
+                <li>List item 1</li>
+                <li>List item 2</li>
+                <li>List item 3</li>
+            </ul>
+        </div>
+
+        <div class="card test-card">
+            <div class="card-body">
+                <h2>Test Card 2 - Card Body</h2>
+                <p>This is a paragraph inside a card body. It should be white text in dark mode.</p>
+                <table style="width: 100%; margin-top: 10px;">
+                    <thead>
+                        <tr>
+                            <th>Header 1</th>
+                            <th>Header 2</th>
+                            <th>Header 3</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Data 1</td>
+                            <td>Data 2</td>
+                            <td>Data 3</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="info-card test-card">
+            <h2>Test Card 3 - Info Card</h2>
+            <p>This is a paragraph inside an info card. It should be white text in dark mode.</p>
+            <form>
+                <label>Test Input:</label>
+                <input type="text" placeholder="Enter text here" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc; width: 100%; margin-top: 5px;">
+                <label style="display: block; margin-top: 10px;">Test Textarea:</label>
+                <textarea rows="3" placeholder="Enter text here" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc; width: 100%; margin-top: 5px;"></textarea>
+            </form>
+        </div>
+
+        <div class="scan-content test-card">
+            <h2>Test Card 4 - Scan Content</h2>
+            <p>This is a paragraph inside scan content. It should be white text in dark mode.</p>
+            <div style="margin-top: 10px;">
+                <span>This is a span element.</span>
+                <div>This is a div element.</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="spiderfoot/static/js/spiderfoot.js"></script>
+    <script>
+        // Additional diagnostic script
+        function updateDiagnostics() {
+            const theme = localStorage.getItem('theme') || 'light';
+            const dataTheme = document.documentElement.getAttribute('data-theme') || 'none';
+            
+            document.getElementById('current-theme').textContent = theme;
+            document.getElementById('local-storage-theme').textContent = theme;
+            document.getElementById('data-theme-attr').textContent = dataTheme;
+        }
+
+        // Update diagnostics on load
+        updateDiagnostics();
+
+        // Watch for theme changes
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.attributeName === 'data-theme') {
+                    updateDiagnostics();
+                }
+            });
+        });
+
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['data-theme']
+        });
+
+        // Update when checkbox changes
+        const toggler = document.getElementById('theme-toggler');
+        if (toggler) {
+            toggler.addEventListener('change', function() {
+                setTimeout(updateDiagnostics, 100);
+            });
+        }
+    </script>
+</body>
+</html>

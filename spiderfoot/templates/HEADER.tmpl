@@ -2,10 +2,10 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>OSINT Investigator v${version}</title>
+    <title>PRISM v${version} - OSINT Platform</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Advanced OSINT Investigation Platform">
-    <meta name="author" content="OSINT Team">
+    <meta name="description" content="PRISM - Advanced OSINT Investigation Platform">
+    <meta name="author" content="PRISM Team">
     <link rel="icon" type="image/png" href="${docroot}/static/img/spiderfoot-icon.png">
 
     <script type='text/javascript' src='${docroot}/static/js/spiderfoot.js'></script>
@@ -17,16 +17,20 @@
     <link href="${docroot}/static/node_modules/alertifyjs/build/css/alertify.min.css" rel="stylesheet">
 
     <script>
-        // Load themes before the page body loads
+        // Modern theme system - Apply theme before page load to prevent flash
+        (function() {
+            const currentTheme = localStorage.getItem("theme") || "light";
+            if (currentTheme === "dark") {
+                document.documentElement.setAttribute("data-theme", "dark");
+            }
+        })();
+        
+        // Load tablesorter theme
         var head = document.getElementsByTagName('HEAD')[0];
         var link = document.createElement('link');
         link.rel = 'stylesheet';
         link.type = 'text/css';
-        if (localStorage.getItem("theme") === "dark-theme") {
-            link.href = "${docroot}/static/css/dark.css";
-        } else {
-            link.href = "${docroot}/static/node_modules/tablesorter/dist/css/theme.default.min.css";
-        }
+        link.href = "${docroot}/static/node_modules/tablesorter/dist/css/theme.default.min.css";
         head.appendChild(link);
     </script>
 
@@ -88,11 +92,11 @@
     </span>
       <a class="navbar-brand brand-logo light" href="${docroot}/">
         <img class="spiderfoot-header-image" src="${docroot}/static/img/favi.png" />
-        <span style="margin-left: 10px; font-weight: 700; font-size: 20px; color: white;">OSINT Investigator</span>
+        <span style="margin-left: 10px; font-weight: 700; font-size: 20px; color: white;">PRISM</span>
       </a>
       <a class="navbar-brand brand-logo dark" href="${docroot}/">
         <img class="spiderfoot-header-image" src="${docroot}/static/img/favi.png" />
-        <span style="margin-left: 10px; font-weight: 700; font-size: 20px; color: white;">OSINT Investigator</span>
+        <span style="margin-left: 10px; font-weight: 700; font-size: 20px; color: white;">PRISM</span>
       </a>
     </div>
 
@@ -122,8 +126,8 @@ class="nav-item"><a id="nav-link-settings" href="${docroot}/opts" class="nav-lin
 
       <ul class="nav navbar-nav navbar-right">
         <li>
-        <!-- Theme toggler -->
-        <span id="toggler-text">🌙 Dark Mode</span>
+        <!-- Modern Theme Toggler -->
+        <span id="toggler-text" style="color: white; margin-right: 8px; font-size: 14px;">☀️ Light</span>
         <label id="switcher4" class="switch">
           <input id="theme-toggler" class="theme-toggler" type="checkbox">
           <span class="slider round"></span>
@@ -142,17 +146,27 @@ class="nav-item"><a id="nav-link-settings" href="${docroot}/opts" class="nav-lin
     <div class="modal-content glass">
 
     <div class="modal-header">
-      <h3 class="modal-title">OSINT Investigator ${version}</h3>
+      <h3 class="modal-title">🔍 PRISM ${version}</h3>
     </div>
 
     <div class="modal-body">
-   <p><strong>OSINT Investigator</strong> is an advanced open source intelligence gathering platform, designed to automate and streamline digital investigations.</p>
+   <p><strong>PRISM</strong> is an advanced Open Source Intelligence (OSINT) automation platform designed to streamline and enhance digital investigations.</p>
 
-   <p>This powerful tool integrates with over 200 data sources to help investigators, researchers, and security professionals gather comprehensive intelligence about their targets.</p>
+   <p>With over 200 integrated data sources and a modern, intuitive interface, PRISM makes complex intelligence gathering simple and efficient for investigators, researchers, and security professionals.</p>
 
-   <p>Built with modern web technologies and featuring an intuitive purple-gradient interface, OSINT Investigator makes complex investigations simple and efficient.</p>
+   <p><strong>Key Features:</strong></p>
+   <ul>
+     <li>200+ OSINT modules and data sources</li>
+     <li>Modern purple gradient UI with dark mode</li>
+     <li>Multiple export formats (CSV, Excel, JSON, GEXF)</li>
+     <li>Intelligent correlation engine</li>
+     <li>RESTful API support</li>
+   </ul>
 
-   <p>For support and documentation, visit our project repository or contact our development team.</p>
+   <p><strong>Developed by:</strong><br>
+   Yash Patil • Soumitra Bapat • Sharvari Jadhav</p>
+
+   <p><em>Licensed under MIT License | © 2025 PRISM Team</em></p>
     </div>
 
     <div class="modal-footer">
@@ -180,32 +194,6 @@ class="nav-item"><a id="nav-link-settings" href="${docroot}/opts" class="nav-lin
         setTimeout(function() {
           $('body').addClass('loaded');
         }, 500);
-      });
-      
-      // Theme toggle functionality
-      $(document).ready(function() {
-        const themeToggle = document.getElementById('theme-toggler');
-        const toggleText = document.getElementById('toggler-text');
-        
-        // Check current theme
-        if (localStorage.getItem("theme") === "dark-theme") {
-          themeToggle.checked = true;
-          toggleText.textContent = '☀️ Light Mode';
-        } else {
-          toggleText.textContent = '🌙 Dark Mode';
-        }
-        
-        // Toggle theme
-        themeToggle.addEventListener('change', function() {
-          if (this.checked) {
-            localStorage.setItem("theme", "dark-theme");
-            toggleText.textContent = '☀️ Light Mode';
-          } else {
-            localStorage.removeItem("theme");
-            toggleText.textContent = '🌙 Dark Mode';
-          }
-          location.reload();
-        });
       });
     </script>
 

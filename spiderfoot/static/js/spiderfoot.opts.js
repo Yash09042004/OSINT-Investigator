@@ -33,7 +33,10 @@ $(document).ready(function() {
   $("#btn-save-changes").click(function() { saveSettings(); });
   $("#btn-import-config").click(function() { getFile("configFile"); return false; });
   $("#btn-reset-settings").click(function() { clearSettings(); });
-  $("#btn-opt-export").click(function() { window.location.href=docroot + "/optsexport?pattern=api_key"; return false; });
+  $("#btn-opt-export").click(function() { 
+    sf.downloadFile(docroot + "/optsexport?pattern=api_key", "Exporting API keys configuration");
+    return false; 
+  });
   $("#tab_global").click(function() { switchTab("global"); });
 });
 

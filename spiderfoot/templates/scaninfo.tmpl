@@ -153,11 +153,7 @@
         </div>
     </div>
     
-    <div class="scan-content">
-        <div id="scandata-container" class="data-container">
-            <!-- Dynamic content loaded here -->
-        </div>
-    </div>
+  
 </div>
 
 <script src="${docroot}/static/node_modules/sigma/build/sigma.min.js"></script>
@@ -867,46 +863,53 @@
 
         function downloadLogs(instanceId) {
             $("#loader").show();
-            sf.log("Loading logs for scan: " + instanceId);
-            var efr = document.getElementById('exportframe');
-            var urlBase = '${docroot}/scanexportlogs?id=';
-            efr.src = urlBase + instanceId;
-            $("#loader").fadeOut(500);
+            var url = '${docroot}/scanexportlogs?id=' + instanceId;
+            sf.downloadFile(url, "Downloading logs for scan: " + instanceId);
+            setTimeout(function() {
+                $("#loader").fadeOut(500);
+            }, 500);
         }
 
         // Download the data currently being viewed
         function exportEventData(instanceId, eventType, fileType) {
             $("#loader").show();
-            var efr = document.getElementById('exportframe');
+            var url = "";
+            var logMessage = "Exporting scan data";
+            
             if (currentSection == "btn-search") {
-                if (lastSearchType == null || lastSearchType == "ALL") {
-                    type = "";
-                } else {
+                var type = "";
+                if (lastSearchType != null && lastSearchType != "ALL") {
                     type = lastSearchType;
                 }
                 if (fileType == "excel") {
-                    var urlBase = '${docroot}/scansearchresultexport?filetype=excel&id=';
+                    url = '${docroot}/scansearchresultexport?filetype=excel&id=' + instanceId + '&eventType=' + type + "&value=" + lastSearchQuery;
                 } else {
-                    var urlBase = '${docroot}/scansearchresultexport?id=';
+                    url = '${docroot}/scansearchresultexport?id=' + instanceId + '&eventType=' + type + "&value=" + lastSearchQuery;
                 }
-                efr.src = urlBase + instanceId + '&eventType=' + type + "&value=" + lastSearchQuery;
+                logMessage = "Exporting search results as " + fileType;
             }
 
             if (currentSection == "btn-browse") {
                 if (fileType == "excel") {
-                    var urlBase = '${docroot}/scaneventresultexport?filetype=excel&id=';
+                    url = '${docroot}/scaneventresultexport?filetype=excel&id=' + instanceId + '&type=' + eventType;
                 } else {
-                    var urlBase = '${docroot}/scaneventresultexport?id=';
+                    url = '${docroot}/scaneventresultexport?id=' + instanceId + '&type=' + eventType;
                 }
-                efr.src = urlBase + instanceId + '&type=' + eventType;
+                logMessage = "Exporting event data as " + fileType;
             }
 
             if (currentSection == "btn-graph") {
-                sf.log("Loading visualisation for scan: " + instanceId);
-                efr.src = '${docroot}/scanviz?id=' + instanceId + '&gexf=1';
+                url = '${docroot}/scanviz?id=' + instanceId + '&gexf=1';
+                logMessage = "Exporting visualization as GEXF";
             }
 
-            $("#loader").fadeOut(500);
+            if (url) {
+                sf.downloadFile(url, logMessage);
+            }
+            
+            setTimeout(function() {
+                $("#loader").fadeOut(500);
+            }, 500);
         }
 
         // View the configuration that was used for this scan

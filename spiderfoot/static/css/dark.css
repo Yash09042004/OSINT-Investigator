@@ -1,0 +1,237 @@
+/* DARK PURPLE GRADIENT THEME */
+:root {
+  --dark-primary-gradient: linear-gradient(135deg, #2d1b69 0%, #11998e 100%);
+  --dark-secondary-gradient: linear-gradient(135deg, #8360c3 0%, #2ebf91 100%);
+  --dark-accent-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --dark-bg: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+  --dark-card: rgba(45, 27, 105, 0.25);
+  --dark-text: #e2e8f0;
+  --dark-text-secondary: #a0aec0;
+}
+
+body {
+  background: var(--dark-bg) !important;
+  background-attachment: fixed;
+  color: var(--dark-text) !important;
+}
+
+.navbar {
+  background: rgba(45, 27, 105, 0.3) !important;
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  border: 1px solid rgba(102, 126, 234, 0.2) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+}
+
+.navbar-nav > li > a {
+  color: var(--dark-text) !important;
+}
+
+.navbar-nav > li > a:hover {
+  background: rgba(102, 126, 234, 0.2) !important;
+  color: white !important;
+}
+
+.navbar-nav > li.active > a {
+  background: var(--dark-accent-gradient) !important;
+  color: white !important;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.5) !important;
+}
+
+body button {
+  background: var(--dark-accent-gradient) !important;
+  border: none !important;
+  color: white !important;
+}
+
+body button:hover {
+  background: var(--dark-secondary-gradient) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4) !important;
+}
+
+body input {
+  background: rgba(45, 27, 105, 0.2) !important;
+  border: 2px solid rgba(102, 126, 234, 0.4) !important;
+  color: var(--dark-text) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+body input:focus {
+  border-color: #667eea !important;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3) !important;
+  background: rgba(45, 27, 105, 0.3) !important;
+}
+
+.form-control {
+  background: rgba(45, 27, 105, 0.2) !important;
+  border: 2px solid rgba(102, 126, 234, 0.4) !important;
+  color: var(--dark-text) !important;
+}
+
+.form-control:focus {
+  border-color: #667eea !important;
+  background: rgba(45, 27, 105, 0.3) !important;
+  color: var(--dark-text) !important;
+}
+
+body .panel-default {
+  background: var(--dark-card) !important;
+  border: 1px solid rgba(102, 126, 234, 0.3) !important;
+}
+
+.panel {
+  background: var(--dark-card) !important;
+  border: 1px solid rgba(102, 126, 234, 0.3) !important;
+}
+
+tr {
+  background: var(--dark-card) !important;
+}
+
+body tr:nth-child(even) {
+  background: rgba(102, 126, 234, 0.1) !important;
+}
+
+table th {
+  background: var(--dark-accent-gradient) !important;
+  color: white !important;
+}
+
+table td {
+  color: var(--dark-text) !important;
+  border-bottom: 1px solid rgba(102, 126, 234, 0.2) !important;
+}
+
+a {
+  color: #667eea !important;
+}
+
+a:hover {
+  color: #764ba2 !important;
+}
+
+#toggler-text {
+  color: var(--dark-text) !important;
+}
+
+.alert-info {
+  background: rgba(102, 126, 234, 0.2) !important;
+  color: var(--dark-text) !important;
+  border-left: 4px solid #667eea !important;
+}
+
+.modal-content {
+  background: var(--dark-card) !important;
+  color: var(--dark-text) !important;
+  border: 1px solid rgba(102, 126, 234, 0.3) !important;
+}
+
+.modal-header {
+  background: var(--dark-accent-gradient) !important;
+  color: white !important;
+  border-bottom: none !important;
+}
+
+.dropdown-menu {
+  background: var(--dark-card) !important;
+  border: 1px solid rgba(102, 126, 234, 0.3) !important;
+}
+
+.dropdown-menu > li > a {
+  color: var(--dark-text) !important;
+}
+
+.dropdown-menu > li > a:hover {
+  background: rgba(102, 126, 234, 0.3) !important;
+  color: white !important;
+}
+
+.nav-tabs > li.active > a {
+  background: var(--dark-accent-gradient) !important;
+  color: white !important;
+  border: none !important;
+}
+
+.nav-tabs > li > a {
+  color: var(--dark-text-secondary) !important;
+  border: none !important;
+}
+
+.nav-tabs > li > a:hover {
+  background: rgba(102, 126, 234, 0.2) !important;
+  color: var(--dark-text) !important;
+  border: none !important;
+}
+
+.btn {
+  background: var(--dark-accent-gradient) !important;
+  color: white !important;
+  border: none !important;
+}
+
+.btn-primary {
+  background: var(--dark-accent-gradient) !important;
+}
+
+.btn-info {
+  background: var(--dark-primary-gradient) !important;
+}
+
+.btn-secondary {
+  background: var(--dark-secondary-gradient) !important;
+}
+
+#scanlist .alert-info {
+  background: rgba(102, 126, 234, 0.2) !important;
+}
+
+#breadcrumbs {
+  background: var(--dark-card) !important;
+}
+
+.table-border-bg-inherit {
+  color: var(--dark-text) !important;
+}
+
+svg text {
+  fill: var(--dark-text) !important;
+}
+
+.axis path, .axis line {
+  stroke: var(--dark-text) !important;
+}
+
+tr.danger {
+  color: #f5576c !important;
+  background: rgba(245, 87, 108, 0.1) !important;
+}
+
+.ajs-dialog {
+  background: var(--dark-card) !important;
+  color: var(--dark-text) !important;
+}
+
+.ajs-header {
+  background: var(--dark-accent-gradient) !important;
+  color: white !important;
+}
+
+.ajs-body {
+  background: var(--dark-card) !important;
+  color: var(--dark-text) !important;
+}
+
+.ajs-footer {
+  background: var(--dark-card) !important;
+  color: var(--dark-text) !important;
+}
+
+.dark {
+  display: inline !important;
+}
+
+.light {
+  display: none !important;
+}
