@@ -43,7 +43,7 @@ def main() -> None:
     # web server config
     sfWebUiConfig = {
         'host': '127.0.0.1',
-        'port': 80,
+        'port': 5001,
         'root': '/',
         'cors_origins': [],
     }

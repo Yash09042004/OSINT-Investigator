@@ -908,7 +908,7 @@ input:checked + .slider:before {
 
 .modern-tabs > li > a:hover {
     background: var(--accent-color);
-    color: white;
+    color: #000000;
     border-color: var(--accent-color);
     transform: translateY(-1px);
     box-shadow: var(--shadow-medium);
@@ -916,7 +916,7 @@ input:checked + .slider:before {
 
 .modern-tabs > li.active > a {
     background: var(--accent-color);
-    color: white;
+    color: #000000;
     border-color: var(--accent-color);
     box-shadow: var(--shadow-medium);
 }
@@ -1998,12 +1998,12 @@ code, pre {
     
     .modern-tabs > li > a:hover {
         background: var(--accent-color) !important;
-        color: var(--text-inverse) !important;
+        color: #000000 !important;
     }
     
     .modern-tabs > li.active > a {
         background: var(--accent-color) !important;
-        color: var(--text-inverse) !important;
+        color: #000000 !important;
     }
     
     /* BLACK info cards */
@@ -2138,7 +2138,7 @@ body:not([data-theme='dark']) {
 /* Ensure proper contrast for specific UI elements */
 .modern-tabs > li.active > a,
 .modern-tabs > li.active > a * {
-    color: var(--text-inverse) !important;
+    color: #000000 !important;
 }
 
 .modern-tabs > li > a {
@@ -2146,7 +2146,7 @@ body:not([data-theme='dark']) {
 }
 
 .modern-tabs > li > a:hover {
-    color: var(--text-inverse) !important;
+    color: #000000 !important;
 }
 
 /* Footer text */
@@ -2301,7 +2301,7 @@ body:not([data-theme='dark']) {
         color: #ffffff !important;
     }
     
-    /* TABS: Active tabs white on gradient, inactive white on black */
+    /* TABS: Active tabs black text on gradient, inactive white on black */
     .modern-tabs > li > a {
         background: rgba(0, 0, 0, 0.85) !important;
         color: #ffffff !important;
@@ -2311,7 +2311,7 @@ body:not([data-theme='dark']) {
     .modern-tabs > li.active > a,
     .modern-tabs > li > a:hover {
         background: var(--accent-gradient) !important;
-        color: #ffffff !important;
+        color: #000000 !important;
     }
     
     .nav-tabs > li > a {

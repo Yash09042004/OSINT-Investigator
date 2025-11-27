@@ -53,8 +53,7 @@ echo "║           Starting Web Server...          ║"
 echo "╚════════════════════════════════════════════╝"
 echo ""
 echo "🌐 Server will be available at:"
-echo "   👉 http://127.0.0.1:80"
-echo "   👉 http://localhost"
+echo "   👉 http://127.0.0.1:5001"
 echo ""
 echo "🎨 UI Features:"
 echo "   ☀️  Light Mode: Pure black text (#000000)"
@@ -67,22 +66,11 @@ echo "   • Use the theme toggle (☀️/🌙) in the navbar"
 echo "   • Press Ctrl+C to stop the server"
 echo "   • Check spiderfoot.log for debug info"
 echo ""
+echo "════════════════════════════════════════════"
+echo ""
 
-# Check if running as root (required for port 80)
-if [ "$EUID" -ne 0 ]; then
-    echo "⚠️  Port 80 requires root privileges!"
-    echo "   Restarting with sudo..."
-    echo ""
-    echo "════════════════════════════════════════════"
-    echo ""
-    # Re-run the python command with sudo, using the venv python
-    sudo "$(pwd)/venv/bin/python3" sf.py -l 0.0.0.0:80
-else
-    echo "════════════════════════════════════════════"
-    echo ""
-    # Already root, run directly
-    python3 sf.py -l 0.0.0.0:80
-fi
+# Start the server on port 5001
+python3 sf.py -l 127.0.0.1:5001
 
 # Cleanup on exit
 echo ""
