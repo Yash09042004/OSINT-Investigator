@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# 🚀 OSINT Investigator - Quick Start Script
-# This script sets up and runs the OSINT Investigator web application
+# 🚀 PRISM - OSINT Platform Quick Start Script
+# This script sets up and runs the PRISM web application
 
 echo "╔════════════════════════════════════════════╗"
-echo "║   🔍 OSINT Investigator Quick Start 🔍   ║"
+echo "║      🔷 PRISM - OSINT Platform 🔷         ║"
 echo "╚════════════════════════════════════════════╝"
 echo ""
 
@@ -53,7 +53,8 @@ echo "║           Starting Web Server...          ║"
 echo "╚════════════════════════════════════════════╝"
 echo ""
 echo "🌐 Server will be available at:"
-echo "   👉 http://127.0.0.1:5001"
+echo "   👉 http://127.0.0.1:80"
+echo "   👉 http://localhost"
 echo ""
 echo "🎨 UI Features:"
 echo "   ☀️  Light Mode: Pure black text (#000000)"
@@ -66,13 +67,24 @@ echo "   • Use the theme toggle (☀️/🌙) in the navbar"
 echo "   • Press Ctrl+C to stop the server"
 echo "   • Check spiderfoot.log for debug info"
 echo ""
-echo "════════════════════════════════════════════"
-echo ""
 
-# Start the web server
-python3 sf.py -l 127.0.0.1:5001
+# Check if running as root (required for port 80)
+if [ "$EUID" -ne 0 ]; then
+    echo "⚠️  Port 80 requires root privileges!"
+    echo "   Restarting with sudo..."
+    echo ""
+    echo "════════════════════════════════════════════"
+    echo ""
+    # Re-run the python command with sudo, using the venv python
+    sudo "$(pwd)/venv/bin/python3" sf.py -l 0.0.0.0:80
+else
+    echo "════════════════════════════════════════════"
+    echo ""
+    # Already root, run directly
+    python3 sf.py -l 0.0.0.0:80
+fi
 
 # Cleanup on exit
 echo ""
 echo "👋 Server stopped. Goodbye!"
-deactivate
+deactivate 2>/dev/null || true
