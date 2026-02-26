@@ -39,6 +39,8 @@ from spiderfoot import SpiderFootDb
 from spiderfoot import SpiderFootHelpers
 from spiderfoot import __version__
 from spiderfoot.logger import logListenerSetup, logWorkerSetup
+from spiderfoot.graph_engine import SpiderFootGraphEngine
+from spiderfoot.graph_correlation import GraphCorrelator
 
 mp.set_start_method("spawn", force=True)
 
@@ -1882,3 +1884,509 @@ class SpiderFootWebUi:
         retdata['data'] = datamap
 
         return retdata
+
+    #
+    # SANDBOX / LINK ANALYSIS
+    #
+
+    @cherrypy.expose
+    def sandbox(self: 'SpiderFootWebUi') -> str:
+        """Sandbox Page.
+
+        Returns:
+            str: HTML content
+        """
+        templ = Template(filename='spiderfoot/templates/sandbox.tmpl', lookup=self.lookup)
+        return templ.render(docroot=self.docroot, version=__version__)
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def sandboxscan(self: 'SpiderFootWebUi', url: str) -> dict:
+        """Run a sandbox scan.
+
+        Args:
+            url (str): URL to scan
+
+        Returns:
+            dict: Scan results
+        """
+        import subprocess
+        import uuid
+        import os
+
+        if not url:
+            return {"status": "error", "message": "No URL provided"}
+
+        scan_id = str(uuid.uuid4())
+        # Use absolute path for output, ensure it's writable
+        output_dir = os.path.abspath(os.path.join(os.getcwd(), "sandbox_out", scan_id))
+        os.makedirs(output_dir, exist_ok=True)
+
+        # Docker command
+        # Mount the output_dir to /out
+        # WARNING: This assumes the user has 'docker' in path and permissions
+        cmd = [
+            "docker", "run", "--rm",
+            "-v", f"{output_dir}:/out",
+            "spiderfoot-sandbox",
+            url
+        ]
+
+        try:
+            # 60s timeout for the scan
+            subprocess.run(cmd, check=True, timeout=60)
+        except subprocess.CalledProcessError as e:
+            return {"status": "error", "message": f"Docker execution failed. Ensure Docker is running and image 'spiderfoot-sandbox' is built. Error: {e}"}
+        except subprocess.TimeoutExpired:
+            return {"status": "error", "message": "Analysis timed out (60s limit)."}
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+
+        # Check for artifacts
+        # runner.py produces screenshots.json manifest + screenshot_N_name.png files
+        manifest_file = os.path.join(output_dir, "screenshots.json")
+        log_file = os.path.join(output_dir, "console.json")
+        
+        has_screenshot = os.path.exists(manifest_file)
+        has_logs = os.path.exists(log_file)
+        
+        # Read manifest to get list of screenshot files
+        screenshots = []
+        if has_screenshot:
+            try:
+                with open(manifest_file, "r") as f:
+                    import json as _json
+                    manifest = _json.load(f)
+                    screenshots = manifest.get("screenshots", [])
+            except Exception:
+                pass
+
+        return {
+            "status": "success",
+            "scan_id": scan_id,
+            "has_screenshot": has_screenshot,
+            "has_logs": has_logs,
+            "screenshots": screenshots
+        }
+
+    @cherrypy.expose
+    def sandboxfile(self: 'SpiderFootWebUi', id: str, file: str) -> bytes:
+        """Serve sandbox artifacts."""
+        import os
+        import re
+        
+        # Security check: Ensure id is valid uuid and file is allowed
+        # Simple alphanum check for id to prevent traversal
+        if not id or not id.replace("-", "").isalnum() or ".." in file:
+             return self.error("Invalid request")
+
+        # Allow screenshot_*.png files, console.json, and screenshots.json
+        valid_patterns = [r'^screenshot_\d+_.*\.png$', r'^console\.json$', r'^screenshots\.json$']
+        if not any(re.match(pattern, file) for pattern in valid_patterns):
+            return self.error("Invalid file type")
+
+        path = os.path.abspath(os.path.join(os.getcwd(), "sandbox_out", id, file))
+        
+        if not os.path.exists(path):
+            return self.error("File not found")
+
+        if file.endswith(".png"):
+            cherrypy.response.headers['Content-Type'] = "image/png"
+        elif file.endswith(".json"):
+             cherrypy.response.headers['Content-Type'] = "application/json"
+
+        with open(path, "rb") as f:
+            return f.read()
+
+    #
+    # GRAPH OPERATIONS
+    #
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def scangraphbuild(self: 'SpiderFootWebUi', id: str) -> dict:
+        """Build graph for a scan.
+
+        Args:
+            id (str): scan ID
+
+        Returns:
+            dict: Status
+        """
+        engine = SpiderFootGraphEngine(self.config)
+        graph = engine.build_graph_from_scan(id)
+        
+        if graph:
+            return {"status": "SUCCESS", "nodes": graph.number_of_nodes(), "edges": graph.number_of_edges()}
+        else:
+            return {"status": "ERROR", "message": "Graph build failed"}
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def scangraphanalyze(self: 'SpiderFootWebUi', id: str) -> dict:
+        """Run graph analysis.
+
+        Args:
+            id (str): scan ID
+
+        Returns:
+            dict: Status
+        """
+        correlator = GraphCorrelator(self.config, id)
+        correlator.run()
+        return {"status": "SUCCESS", "message": "Graph correlation complete"}
+
+    @cherrypy.expose
+    def scangraphexport(self: 'SpiderFootWebUi', id: str, format: str = "gexf") -> bytes:
+        """Export graph.
+
+        Args:
+             id (str): scan ID
+             format (str): export format
+        
+        Returns:
+             bytes: file content
+        """
+        engine = SpiderFootGraphEngine(self.config)
+        graph = engine.build_graph_from_scan(id)
+        
+        if not graph:
+             return self.error("Graph build failed")
+             
+        if format == "gexf":
+            from io import BytesIO
+            import networkx as nx
+            
+            f = BytesIO()
+            nx.write_gexf(graph, f)
+            
+            cherrypy.response.headers['Content-Disposition'] = f"attachment; filename=SpiderFoot-{id}.gexf"
+            cherrypy.response.headers['Content-Type'] = "application/gexf"
+            return f.getvalue()
+            
+        elif format == "json":
+             import json
+             import networkx as nx
+             data = nx.node_link_data(graph)
+             cherrypy.response.headers['Content-Type'] = "application/json"
+             return json.dumps(data).encode('utf-8')
+             
+        return self.error("Invalid format")
+
+    #
+    # RISK SCORING
+    #
+
+    @cherrypy.expose
+    def riskanalysis(self):
+        """Entity risk analysis page."""
+        dbh = SpiderFootDb(self.config)
+        scans = dbh.scanInstanceList()
+        templ = Template(filename='spiderfoot/templates/riskanalysis.tmpl', lookup=self.lookup)
+        return templ.render(scans=scans, docroot=self.docroot, version=__version__, pageid="RISK")
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def riskscore(self, scan_id=None):
+        """Run risk scoring engine on a scan and return results as JSON."""
+        if not scan_id:
+            return {"status": "error", "message": "No scan ID specified"}
+
+        try:
+            import time as _time
+            from spiderfoot.risk_scorer import EntityRiskScorer
+
+            t0 = _time.time()
+            dbh = SpiderFootDb(self.config)
+
+            scorer = EntityRiskScorer(dbh)
+            scored = scorer.score_all_entities(scan_id)
+            summary = scorer.get_scan_risk_summary(scored)
+
+            # Persist to DB (delete old scores first for idempotency)
+            dbh.deleteRiskScores(scan_id)
+            scorer.store_risk_scores(scan_id, scored)
+
+            elapsed = round(_time.time() - t0, 2)
+
+            return {
+                "status": "success",
+                "elapsed": elapsed,
+                "summary": summary,
+                "entities": scored,
+            }
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def riskscoredata(self, scan_id=None, level=None):
+        """Retrieve stored risk scores for a scan."""
+        if not scan_id:
+            return {"status": "error", "message": "No scan ID specified"}
+
+        try:
+            dbh = SpiderFootDb(self.config)
+            rows = dbh.getRiskScores(scan_id, riskLevel=level)
+
+            entities = []
+            for r in rows:
+                entities.append({
+                    "id": r[0],
+                    "entity_hash": r[2],
+                    "entity_type": r[3],
+                    "entity_data": r[4],
+                    "risk_score": r[5],
+                    "risk_level": r[6],
+                    "threat_score": r[7],
+                    "graph_score": r[8],
+                    "vuln_score": r[9],
+                    "infra_score": r[10],
+                    "exposure_score": r[11],
+                    "details": r[12],
+                    "created_time": r[13],
+                })
+
+            return {"status": "success", "entities": entities}
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+
+    @cherrypy.expose
+    def graphanalysis(self):
+        """Graph-based correlation analysis page"""
+        # Get all completed scans
+        dbh = SpiderFootDb(self.config)
+        scans = dbh.scanInstanceList()
+        
+        templ = Template(filename='spiderfoot/templates/graphanalysis.tmpl', lookup=self.lookup)
+        return templ.render(scans=scans, docroot=self.docroot, version=__version__, pageid="GRAPH")
+    
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def graphbuild(self, scan_id):
+        """Build graph for a scan"""
+        try:
+            from spiderfoot.graph_engine import SpiderFootGraphEngine
+            
+            dbh = SpiderFootDb(self.config)
+            
+            # Initialize engine
+            engine = SpiderFootGraphEngine(dbh, scan_id)
+            
+            # Build graph
+            graph = engine.build_graph_from_scan(include_affiliates=True)
+            
+            # Get statistics
+            stats = engine.get_graph_stats()
+            
+            # Save graph to disk for later use
+            import os
+            graph_dir = f"/tmp/prism_graphs"
+            os.makedirs(graph_dir, exist_ok=True)
+            engine.save_to_disk(f"{graph_dir}/{scan_id}.pkl")
+            
+            return {
+                'status': 'success',
+                'stats': stats
+            }
+        except Exception as e:
+            return {
+                'status': 'error',
+                'message': str(e)
+            }
+    
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def graphcorrelations(self, scan_id):
+        """Get graph correlations for a scan"""
+        try:
+            from spiderfoot.graph_engine import SpiderFootGraphEngine
+            from spiderfoot.graph_algorithms import GraphAnalyzer
+            import os
+            import json as _json
+
+            dbh = SpiderFootDb(self.config)
+
+            # Load or build graph
+            graph_path = f"/tmp/prism_graphs/{scan_id}.pkl"
+            engine = SpiderFootGraphEngine(dbh, scan_id)
+
+            if os.path.exists(graph_path):
+                engine.load_from_disk(graph_path)
+            else:
+                engine.build_graph_from_scan()
+
+            # Run in-memory analysis
+            analyzer = GraphAnalyzer(engine.graph)
+            correlations_data = analyzer.run_all_correlations()
+            summary = correlations_data.get("summary", {})
+
+            # Delete old entries for re-run freshness
+            with dbh.dbhLock:
+                dbh.dbh.execute(
+                    "DELETE FROM tbl_scan_graph_correlations WHERE scan_instance_id = ?",
+                    (scan_id,))
+                dbh.conn.commit()
+
+            # Enrich each result type with metadata and store
+            store_qry = """INSERT INTO tbl_scan_graph_correlations
+                (scan_instance_id, correlation_type, algorithm, entities, metadata, score, created_time)
+                VALUES (?, ?, ?, ?, ?, ?, datetime('now'))"""
+
+            communities = correlations_data.get("communities", [])
+            centrality  = correlations_data.get("centrality", [])
+            anomalies   = correlations_data.get("anomalies", [])
+
+            # Build metadata dicts with meaningful descriptions
+            num_c = len(communities)
+            large = [c for c in communities if c.get("size", 0) > 5]
+            comm_risk = "HIGH" if large else ("MEDIUM" if num_c > 3 else "LOW")
+            comm_meta = {
+                "title": f"{num_c} Entity Communities Detected",
+                "description": (
+                    f"Graph clustering found {num_c} distinct communities. "
+                    f"{len(large)} large cluster(s) (>5 nodes) suggest potential "
+                    f"coordinated infrastructure or threat-actor grouping. "
+                    f"Largest group has {communities[0]['size'] if communities else 0} entities."
+                ),
+                "risk_level": comm_risk,
+            }
+
+            high_pr = [n for n in centrality if n.get("risk_level") == "HIGH"]
+            cent_risk = "HIGH" if high_pr else ("MEDIUM" if centrality else "LOW")
+            cent_meta = {
+                "title": f"{len(high_pr)} High-Centrality Pivot Nodes Found",
+                "description": (
+                    f"PageRank analysis identified {len(centrality)} nodes by influence. "
+                    f"{len(high_pr)} node(s) scored in the HIGH tier — these act as "
+                    f"infrastructure bridges and should be prioritised in attribution."
+                    + (f" Top pivot: {high_pr[0]['label']} ({high_pr[0]['type']})" if high_pr else "")
+                ),
+                "risk_level": cent_risk,
+            }
+
+            high_anom = [a for a in anomalies if a.get("risk_level") == "HIGH"]
+            anom_risk = "HIGH" if high_anom else ("MEDIUM" if anomalies else "LOW")
+            anom_meta = {
+                "title": f"{len(anomalies)} Structural Anomalies ({len(high_anom)} HIGH)",
+                "description": (
+                    f"Heuristic analysis flagged {len(anomalies)} graph anomalies. "
+                    f"{len(high_anom)} high-degree node(s) with abnormally many connections "
+                    f"may indicate command-and-control infrastructure or data aggregation hubs. "
+                    + (f"Most suspect: {high_anom[0]['node']} (degree={high_anom[0]['degree']})" if high_anom else "No high-risk anomalies.")
+                ),
+                "risk_level": anom_risk,
+            }
+
+            risk_order = {"HIGH": 3, "MEDIUM": 2, "LOW": 1}
+            for corr_type, algo, dataset, meta in [
+                ("community", "louvain",   communities, comm_meta),
+                ("centrality","pagerank",  centrality,  cent_meta),
+                ("anomaly",   "heuristic", anomalies,   anom_meta),
+            ]:
+                score = risk_order.get(meta["risk_level"], 1) / 3.0
+                try:
+                    with dbh.dbhLock:
+                        dbh.dbh.execute(store_qry, (
+                            scan_id, corr_type, algo,
+                            _json.dumps(dataset[:20]),   # cap payload
+                            _json.dumps(meta),
+                            score,
+                        ))
+                        dbh.conn.commit()
+                except Exception:
+                    pass
+
+            db_correlations = dbh.getGraphCorrelations(scan_id)
+            return {'status': 'success', 'correlations': db_correlations}
+
+        except Exception as e:
+            return {'status': 'error', 'message': str(e), 'correlations': []}
+
+
+
+    
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def graphdata(self, scan_id):
+        """Get graph data for visualization"""
+        try:
+            from spiderfoot.graph_engine import SpiderFootGraphEngine
+            import os
+            
+            dbh = SpiderFootDb(self.config)
+            
+            # Load graph
+            graph_path = f"/tmp/prism_graphs/{scan_id}.pkl"
+            
+            engine = SpiderFootGraphEngine(dbh, scan_id)
+            
+            if os.path.exists(graph_path):
+                engine.load_from_disk(graph_path)
+            else:
+                engine.build_graph_from_scan()
+            
+            # Convert to D3.js format
+            nodes = []
+            links = []
+            
+            for node_id, attrs in engine.graph.nodes(data=True):
+                nodes.append({
+                    'id': node_id,
+                    'label': attrs.get('label', attrs.get('data', node_id))[:30],
+                    'type': attrs.get('type', 'UNKNOWN'),
+                    'data': attrs.get('data', ''),
+                    'color': attrs.get('color', '#888')
+                })
+            
+            for source, target, attrs in engine.graph.edges(data=True):
+                links.append({
+                    'source': source,
+                    'target': target,
+                    'type': attrs.get('type', 'RELATED')
+                })
+            
+            return {
+                'status': 'success',
+                'graph': {
+                    'nodes': nodes,
+                    'links': links
+                }
+            }
+        except Exception as e:
+            return {
+                'status': 'error',
+                'message': str(e)
+            }
+    
+    @cherrypy.expose
+    def graphexport(self, scan_id, format='json'):
+        """Export graph in various formats"""
+        try:
+            from spiderfoot.graph_engine import SpiderFootGraphEngine
+            import os
+            
+            dbh = SpiderFootDb(self.config)
+            
+            # Load graph
+            graph_path = f"/tmp/prism_graphs/{scan_id}.pkl"
+            engine = SpiderFootGraphEngine(dbh, scan_id)
+            
+            if os.path.exists(graph_path):
+                engine.load_from_disk(graph_path)
+            else:
+                engine.build_graph_from_scan()
+            
+            # Export
+            export_path = engine.export_graph(format=format, filepath=f"/tmp/graph_{scan_id}.{format}")
+            
+            # Read and return file
+            with open(export_path, 'rb') as f:
+                data = f.read()
+            
+            cherrypy.response.headers['Content-Type'] = 'application/octet-stream'
+            cherrypy.response.headers['Content-Disposition'] = f'attachment; filename="graph_{scan_id}.{format}"'
+            
+            return data
+        except Exception as e:
+            return f"Error: {str(e)}"

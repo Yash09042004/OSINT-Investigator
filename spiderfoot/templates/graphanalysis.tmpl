@@ -1,0 +1,467 @@
+<%include file="HEADER.tmpl"/>
+
+<div class="row">
+    <div class="col-md-12">
+        <h2><i class="glyphicon glyphicon-sitemap"></i> Graph-Based Correlation Analysis</h2>
+        <p>Discover hidden relationships, threat communities, and infrastructure overlap using advanced graph algorithms.</p>
+        
+        <!-- Scan Selection -->
+        <div class="well">
+            <h4>Select Scan to Analyze</h4>
+            <div class="form-group">
+                <select id="scan-select" class="form-control">
+                    <option value="">-- Select a completed scan --</option>
+                    % for scan in scans:
+                        <option value="${scan[0]}">${scan[1]} (${scan[2]})</option>
+                    % endfor
+                </select>
+            </div>
+            <button id="build-graph-btn" class="btn btn-primary btn-lg" disabled>
+                <i class="glyphicon glyphicon-cog"></i> Build Graph & Run Analysis
+            </button>
+            <span id="status-message" class="text-muted" style="margin-left: 15px;"></span>
+        </div>
+
+        <!-- Results Area -->
+        <div id="results-container" style="display: none;">
+            
+            <!-- Graph Statistics -->
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4><i class="glyphicon glyphicon-stats"></i> Graph Statistics</h4>
+                </div>
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="stat-box">
+                                <h3 id="stat-nodes">0</h3>
+                                <p>Entities (Nodes)</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-box">
+                                <h3 id="stat-edges">0</h3>
+                                <p>Relationships (Edges)</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-box">
+                                <h3 id="stat-density">0.00</h3>
+                                <p>Graph Density</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-box">
+                                <h3 id="stat-components">0</h3>
+                                <p>Connected Components</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Correlations -->
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4><i class="glyphicon glyphicon-search"></i> Discovered Correlations (<span id="corr-count">0</span>)</h4>
+                </div>
+                <div class="panel-body">
+                    <div id="correlations-list">
+                        <p class="text-muted">No correlations found yet.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Graph Visualization -->
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4><i class="glyphicon glyphicon-eye-open"></i> Interactive Graph Visualization</h4>
+                </div>
+                <div class="panel-body">
+                    <div id="graph-viz" style="width: 100%; height: 600px; border: 1px solid #ddd; background: #f8f8f8;">
+                        <div style="text-align: center; padding-top: 250px;">
+                            <p class="text-muted">Graph visualization will appear here</p>
+                            <p><small>Powered by D3.js Force-Directed Layout</small></p>
+                        </div>
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <button id="export-json-btn" class="btn btn-default">
+                            <i class="glyphicon glyphicon-download"></i> Export JSON
+                        </button>
+                        <button id="export-gexf-btn" class="btn btn-default">
+                            <i class="glyphicon glyphicon-download"></i> Export GEXF (for Gephi)
+                        </button>
+                        <button id="zoom-fit-btn" class="btn btn-default">
+                            <i class="glyphicon glyphicon-zoom-in"></i> Fit to Screen
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+.stat-box {
+    text-align: center;
+    padding: 20px;
+    background: #f5f5f5;
+    border-radius: 5px;
+}
+.stat-box h3 {
+    margin: 0;
+    color: #3498db;
+    font-size: 36px;
+    font-weight: bold;
+}
+.stat-box p {
+    margin: 5px 0 0 0;
+    color: #666;
+}
+.correlation-item {
+    border-left: 4px solid #3498db;
+    padding: 15px;
+    margin-bottom: 15px;
+    background: #f9f9f9;
+    border-radius: 3px;
+}
+.correlation-item.risk-high {
+    border-left-color: #e74c3c;
+}
+.correlation-item.risk-medium {
+    border-left-color: #f39c12;
+}
+.correlation-item.risk-low {
+    border-left-color: #95a5a6;
+}
+.correlation-title {
+    font-weight: bold;
+    font-size: 16px;
+    margin-bottom: 5px;
+}
+.correlation-meta {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 10px;
+}
+.correlation-description {
+    color: #333;
+}
+.badge-high {
+    background-color: #e74c3c;
+}
+.badge-medium {
+    background-color: #f39c12;
+}
+.badge-low {
+    background-color: #95a5a6;
+}
+</style>
+
+<script src="${docroot}/static/js/d3.v5.min.js"></script>
+<script>
+// Use a local alias to avoid any global d3 version conflict
+var D3 = window.d3;
+
+$(document).ready(function() {
+    var currentScanId = null;
+    var currentSvg = null;
+
+    // Enable/disable build button based on selection
+    $('#scan-select').change(function() {
+        var scanId = $(this).val();
+        $('#build-graph-btn').prop('disabled', !scanId);
+        currentScanId = scanId;
+    });
+
+    // Build graph and run analysis
+    $('#build-graph-btn').click(function() {
+        if (!currentScanId) return;
+
+        $('#status-message').html('<i class="glyphicon glyphicon-refresh glyphicon-spin"></i> Building graph...');
+        $('#build-graph-btn').prop('disabled', true);
+
+        $.ajax({
+            url: '${docroot}/graphbuild',
+            type: 'POST',
+            data: { scan_id: currentScanId },
+            success: function(data) {
+                if (data.status === 'success') {
+                    $('#status-message').html('<span class="text-success">✓ Graph built! Loading visualization...</span>');
+                    displayGraphStats(data.stats);
+                    $('#results-container').show();
+                    // Load graph first, then correlations
+                    loadGraphVisualization(currentScanId, function() {
+                        runCorrelations(currentScanId);
+                    });
+                } else {
+                    $('#status-message').html('<span class="text-danger">✗ Error: ' + (data.message || 'Unknown error') + '</span>');
+                }
+                $('#build-graph-btn').prop('disabled', false);
+            },
+            error: function(xhr) {
+                $('#status-message').html('<span class="text-danger">✗ Server error: ' + xhr.status + '</span>');
+                $('#build-graph-btn').prop('disabled', false);
+            }
+        });
+    });
+
+    function displayGraphStats(stats) {
+        if (!stats) return;
+        $('#stat-nodes').text(stats.num_nodes || 0);
+        $('#stat-edges').text(stats.num_edges || 0);
+        $('#stat-density').text((stats.density || 0).toFixed(4));
+        $('#stat-components').text(stats.num_weakly_connected_components || 0);
+    }
+
+    function runCorrelations(scanId) {
+        $.ajax({
+            url: '${docroot}/graphcorrelations/' + scanId,
+            type: 'GET',
+            success: function(data) {
+                if (data.status === 'success') {
+                    displayCorrelations(data.correlations || []);
+                } else {
+                    $('#correlations-list').html('<p class="text-warning">Could not load correlations: ' + (data.message || '') + '</p>');
+                }
+            },
+            error: function() {
+                $('#correlations-list').html('<p class="text-muted">Correlations unavailable.</p>');
+            }
+        });
+    }
+
+    function displayCorrelations(correlations) {
+        $('#corr-count').text(correlations.length);
+
+        if (!correlations || correlations.length === 0) {
+            $('#correlations-list').html('<p class="text-muted">No correlations discovered.</p>');
+            return;
+        }
+
+        var html = '';
+        correlations.forEach(function(corr) {
+            var metadata = {};
+            try {
+                // DB row: [id, scan_id, corr_type, algorithm, entities, metadata_json, score, time]
+                var metaRaw = corr[5] || '{}';
+                metadata = typeof metaRaw === 'string' ? JSON.parse(metaRaw) : metaRaw;
+            } catch(e) { metadata = {}; }
+
+            var riskLevel = (metadata.risk_level || corr[2] || 'low').toLowerCase();
+            var riskClass = 'risk-' + riskLevel;
+            var badgeClass = 'badge-' + riskLevel;
+            var confidence = corr[6] ? (corr[6] * 100).toFixed(1) + '%' : 'N/A';
+
+            html += '<div class="correlation-item ' + riskClass + '">';
+            html += '  <div class="correlation-title">';
+            html += '    <span class="badge ' + badgeClass + '">' + riskLevel.toUpperCase() + '</span> ';
+            html += metadata.title || ('Correlation #' + corr[0]);
+            html += '  </div>';
+            html += '  <div class="correlation-meta">';
+            html += '    Type: <strong>' + (corr[2] || '') + '</strong> | ';
+            html += '    Algorithm: <strong>' + (corr[3] || '') + '</strong> | ';
+            html += '    Confidence: <strong>' + confidence + '</strong>';
+            html += '  </div>';
+            html += '  <div class="correlation-description">';
+            html += metadata.description || 'No description available.';
+            html += '  </div>';
+            html += '</div>';
+        });
+
+        $('#correlations-list').html(html);
+    }
+
+    function loadGraphVisualization(scanId, callback) {
+        $('#graph-viz').html('<div style="text-align:center;padding-top:250px;"><i class="glyphicon glyphicon-refresh glyphicon-spin"></i> Loading graph...</div>');
+
+        $.ajax({
+            url: '${docroot}/graphdata/' + scanId,
+            type: 'GET',
+            success: function(data) {
+                if (data.status === 'success' && data.graph) {
+                    var g = data.graph;
+                    if (!g.nodes || g.nodes.length === 0) {
+                        $('#graph-viz').html('<div style="text-align:center;padding-top:250px;"><p class="text-muted">No graph nodes to display for this scan.</p></div>');
+                    } else {
+                        renderGraph(g);
+                    }
+                } else {
+                    $('#graph-viz').html('<div style="text-align:center;padding-top:250px;"><p class="text-danger">Graph data error: ' + (data.message || 'unknown') + '</p></div>');
+                }
+                if (callback) callback();
+            },
+            error: function(xhr) {
+                $('#graph-viz').html('<div style="text-align:center;padding-top:250px;"><p class="text-danger">Failed to load graph (' + xhr.status + '). Check server logs.</p></div>');
+                if (callback) callback();
+            }
+        });
+    }
+
+    function renderGraph(graphData) {
+        $('#graph-viz').empty();
+
+        var width = Math.max($('#graph-viz').width(), 600);
+        var height = 600;
+
+        var svg = D3.select('#graph-viz')
+            .append('svg')
+            .attr('width', width)
+            .attr('height', height)
+            .style('background', '#1a1a2e');
+
+        currentSvg = svg;
+
+        var g = svg.append('g');
+
+        // Zoom
+        var zoom = D3.zoom()
+            .scaleExtent([0.05, 10])
+            .on('zoom', function() {
+                g.attr('transform', D3.event.transform);
+            });
+        svg.call(zoom);
+
+        // Color by type
+        var colorMap = {
+            'IP_ADDRESS': '#3498db',
+            'IPV6_ADDRESS': '#2980b9',
+            'INTERNET_NAME': '#2ecc71',
+            'DOMAIN_NAME': '#27ae60',
+            'EMAILADDR': '#e74c3c',
+            'HUMAN_NAME': '#f39c12',
+            'PHONE_NUMBER': '#9b59b6',
+            'USERNAME': '#e67e22',
+            'ROOT': '#e74c3c',
+        };
+        function nodeColor(type) {
+            for (var k in colorMap) {
+                if (type && type.indexOf(k) !== -1) return colorMap[k];
+            }
+            return '#8b9cff';
+        }
+
+        // Deep-copy nodes/links (D3 mutates them)
+        var nodes = graphData.nodes.map(function(d) { return Object.assign({}, d); });
+        var links = graphData.links.map(function(d) { return Object.assign({}, d); });
+
+        // Force simulation
+        var simulation = D3.forceSimulation(nodes)
+            .force('link', D3.forceLink(links).id(function(d) { return d.id; }).distance(80))
+            .force('charge', D3.forceManyBody().strength(-200))
+            .force('center', D3.forceCenter(width / 2, height / 2))
+            .force('collision', D3.forceCollide(15));
+
+        // Arrow markers
+        svg.append('defs').selectAll('marker')
+            .data(['end'])
+            .enter().append('marker')
+            .attr('id', 'arrow')
+            .attr('viewBox', '0 -5 10 10')
+            .attr('refX', 18)
+            .attr('refY', 0)
+            .attr('markerWidth', 6)
+            .attr('markerHeight', 6)
+            .attr('orient', 'auto')
+            .append('path')
+            .attr('d', 'M0,-5L10,0L0,5')
+            .attr('fill', '#666');
+
+        // Links
+        var link = g.append('g')
+            .selectAll('line')
+            .data(links)
+            .enter().append('line')
+            .attr('stroke', '#444')
+            .attr('stroke-opacity', 0.7)
+            .attr('stroke-width', 1)
+            .attr('marker-end', 'url(#arrow)');
+
+        // Drag handlers
+        function dragstarted(d) {
+            if (!D3.event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x; d.fy = d.y;
+        }
+        function dragged(d) {
+            d.fx = D3.event.x; d.fy = D3.event.y;
+        }
+        function dragended(d) {
+            if (!D3.event.active) simulation.alphaTarget(0);
+            d.fx = null; d.fy = null;
+        }
+
+        // Node groups
+        var nodeG = g.append('g').selectAll('.node')
+            .data(nodes)
+            .enter().append('g')
+            .attr('class', 'node')
+            .call(D3.drag()
+                .on('start', dragstarted)
+                .on('drag', dragged)
+                .on('end', dragended));
+
+        nodeG.append('circle')
+            .attr('r', function(d) { return d.type === 'ROOT' ? 14 : 8; })
+            .attr('fill', function(d) { return nodeColor(d.type); })
+            .attr('stroke', '#fff')
+            .attr('stroke-width', 1.5);
+
+        nodeG.append('text')
+            .text(function(d) { return (d.label || d.id || '').substring(0, 20); })
+            .attr('font-size', 9)
+            .attr('fill', '#eee')
+            .attr('dx', 11)
+            .attr('dy', 4);
+
+        nodeG.append('title')
+            .text(function(d) { return (d.type || '') + ': ' + (d.data || d.id || ''); });
+
+        // Tick
+        simulation.on('tick', function() {
+            link
+                .attr('x1', function(d) { return d.source.x; })
+                .attr('y1', function(d) { return d.source.y; })
+                .attr('x2', function(d) { return d.target.x; })
+                .attr('y2', function(d) { return d.target.y; });
+
+            nodeG.attr('transform', function(d) {
+                return 'translate(' + d.x + ',' + d.y + ')';
+            });
+        });
+
+        // Legend
+        var legendData = Object.keys(colorMap).slice(0, 6);
+        var legend = svg.append('g').attr('transform', 'translate(10,10)');
+        legendData.forEach(function(t, i) {
+            var row = legend.append('g').attr('transform', 'translate(0,' + (i * 20) + ')');
+            row.append('circle').attr('r', 6).attr('cx', 6).attr('cy', 6).attr('fill', colorMap[t]);
+            row.append('text').text(t).attr('x', 16).attr('y', 10).attr('font-size', 10).attr('fill', '#ccc');
+        });
+
+        // Zoom-fit button
+        $('#zoom-fit-btn').off('click').click(function() {
+            try {
+                var bounds = g.node().getBBox();
+                if (bounds.width === 0 || bounds.height === 0) return;
+                var scale = 0.85 / Math.max(bounds.width / width, bounds.height / height);
+                var tx = width / 2 - scale * (bounds.x + bounds.width / 2);
+                var ty = height / 2 - scale * (bounds.y + bounds.height / 2);
+                svg.transition().duration(750)
+                    .call(zoom.transform, D3.zoomIdentity.translate(tx, ty).scale(scale));
+            } catch(e) {}
+        });
+    }
+
+    // Export buttons
+    $('#export-json-btn').off('click').click(function() {
+        if (currentScanId) window.location.href = '${docroot}/graphexport/' + currentScanId + '?format=json';
+    });
+    $('#export-gexf-btn').off('click').click(function() {
+        if (currentScanId) window.location.href = '${docroot}/graphexport/' + currentScanId + '?format=gexf';
+    });
+});
+</script>
+
+<%include file="FOOTER.tmpl"/>
+

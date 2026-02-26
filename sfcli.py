@@ -799,6 +799,70 @@ class SpiderFootCli(cmd.Cmd):
             self.edprint("Invalid syntax.")
             return
 
+        sid = c[0][0]
+        fmt = "json"
+        if "-t" in c[0]:
+            fmt = c[0][c[0].index("-t") + 1]
+
+        url = self.ownopts['cli.server_baseurl'] + f"/scanexport{fmt}multi?ids={sid}"
+        d = self.request(url)
+        if not d:
+            return
+
+        if "-f" in c[0]:
+            fname = c[0][c[0].index("-f") + 1]
+            try:
+                f = open(fname, "w")
+                f.write(d)
+                f.close()
+                self.dprint(f"Successfully exported to {fname}.")
+            except Exception as e:
+                self.edprint(f"Failed to write to file: {e}")
+            return
+        
+        self.dprint(d, plain=True)
+
+    # Graph operations
+    def do_graph(self, line):
+        """graph <sid> [build|analyze|export] [format]
+        Perform graph operations on a scan.
+        build: Build the graph from scan data
+        analyze: Run community detection, centrality, etc.
+        export: Export graph (default: gexf)
+        """
+        c = self.myparseline(line)
+        if len(c[0]) < 2:
+            self.edprint("Invalid syntax. Usage: graph <sid> <action> [options]")
+            return
+
+        sid = c[0][0]
+        action = c[0][1]
+        
+        if action == "build":
+            url = self.ownopts['cli.server_baseurl'] + "/scangraphbuild"
+            d = self.request(url, post={"id": sid})
+            if d:
+                self.dprint(d)
+                
+        elif action == "analyze":
+            url = self.ownopts['cli.server_baseurl'] + "/scangraphanalyze"
+            d = self.request(url, post={"id": sid})
+            if d:
+                self.dprint(d)
+
+        elif action == "export":
+            fmt = "gexf"
+            if len(c[0]) > 2:
+                fmt = c[0][2]
+            
+            url = self.ownopts['cli.server_baseurl'] + f"/scangraphexport?id={sid}&format={fmt}"
+            d = self.request(url)
+            if d:
+                self.dprint(d, plain=True)
+        else:
+            self.edprint(f"Unknown graph action: {action}")
+
+
         export_format = 'json'
         if '-t' in c[0]:
             export_format = c[0][c[0].index("-t") + 1]

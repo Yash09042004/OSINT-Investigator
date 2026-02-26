@@ -1,0 +1,44 @@
+[
+  {
+    "page": "https://www.python.org",
+    "level": "SEVERE",
+    "message": "https://media.ethicalads.io/media/client/v1.4.0/ethicalads.min.js 0:11866 Uncaught Error: No ad placements found.",
+    "source": "javascript",
+    "timestamp": 1771244425961
+  },
+  {
+    "page": "https://www.python.org",
+    "level": "WARNING",
+    "message": "https://www.python.org/ - <meta name=\"apple-mobile-web-app-capable\" content=\"yes\"> is deprecated. Please include <meta name=\"mobile-web-app-capable\" content=\"yes\">",
+    "source": "other",
+    "timestamp": 1771244428990
+  },
+  {
+    "page": "https://www.python.org/",
+    "level": "SEVERE",
+    "message": "https://media.ethicalads.io/media/client/v1.4.0/ethicalads.min.js 0:11866 Uncaught Error: No ad placements found.",
+    "source": "javascript",
+    "timestamp": 1771244434843
+  },
+  {
+    "page": "https://www.python.org/",
+    "level": "WARNING",
+    "message": "https://www.python.org/ - <meta name=\"apple-mobile-web-app-capable\" content=\"yes\"> is deprecated. Please include <meta name=\"mobile-web-app-capable\" content=\"yes\">",
+    "source": "other",
+    "timestamp": 1771244434845
+  },
+  {
+    "page": "https://www.python.org/psf/",
+    "level": "SEVERE",
+    "message": "https://media.ethicalads.io/media/client/v1.4.0/ethicalads.min.js 0:11866 Uncaught Error: No ad placements found.",
+    "source": "javascript",
+    "timestamp": 1771244437459
+  },
+  {
+    "page": "https://www.python.org/psf/",
+    "level": "WARNING",
+    "message": "https://www.python.org/psf-landing/ - <meta name=\"apple-mobile-web-app-capable\" content=\"yes\"> is deprecated. Please include <meta name=\"mobile-web-app-capable\" content=\"yes\">",
+    "source": "other",
+    "timestamp": 1771244437460
+  }
+]

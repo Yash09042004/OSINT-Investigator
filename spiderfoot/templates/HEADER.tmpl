@@ -79,7 +79,7 @@
     </div>
 
 <!-- Modern Navigation Bar -->
-<nav class="navbar navbar-fixed-top glass">
+<nav class="navbar navbar-fixed-top" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; box-shadow: 0 4px 20px rgba(102,126,234,0.4); padding: 10px 0; position: fixed; top: 0; left: 0; right: 0; z-index: 1030;">
   <div class="container-fluid">
     <!-- Brand and toggle get grouped for better mobile display -->
     <div class="navbar-header">
@@ -90,19 +90,14 @@
         <span class="icon-bar"></span>
       </button>
     </span>
-      <a class="navbar-brand brand-logo light" href="${docroot}/">
-        <img class="spiderfoot-header-image" src="${docroot}/static/img/favi.png" />
-        <span style="margin-left: 10px; font-weight: 700; font-size: 20px; color: white;">PRISM</span>
-      </a>
-      <a class="navbar-brand brand-logo dark" href="${docroot}/">
-        <img class="spiderfoot-header-image" src="${docroot}/static/img/favi.png" />
-        <span style="margin-left: 10px; font-weight: 700; font-size: 20px; color: white;">PRISM</span>
+      <a class="navbar-brand brand-logo" href="${docroot}/" style="padding-top: 8px;">
+        <img class="spiderfoot-header-image" src="${docroot}/static/img/favi.png" style="height: 42px;" />
       </a>
     </div>
 
     <!-- Collect the nav links, forms, and other content for toggling -->
     <div class="collapse navbar-collapse" id="main-navbar-collapse">
-      <ul class="nav navbar-nav">
+      <ul class="nav navbar-nav" style="margin-top: 5px;">
         <li
 % if pageid == "NEWSCAN":
     class="active"
@@ -115,6 +110,13 @@ class="nav-item"
 % endif
 class="nav-item"
 ><a id="nav-link-scans" href="${docroot}/"><i class="glyphicon glyphicon-search"></i>&nbsp;Investigations</a></li>
+        <li class="nav-item"><a id="nav-link-sandbox" href="${docroot}/sandbox"><i class="glyphicon glyphicon-eye-open"></i>&nbsp;Sandbox</a></li>
+        <li class="nav-item"><a id="nav-link-graph" href="${docroot}/graphanalysis"><i class="glyphicon glyphicon-sitemap"></i>&nbsp;Graph Analysis</a></li>
+        <li
+% if pageid == "RISK":
+    class="active"
+% endif
+class="nav-item"><a id="nav-link-risk" href="${docroot}/riskanalysis"><i class="glyphicon glyphicon-warning-sign"></i>&nbsp;Risk Analysis</a></li>
         <li
 % if pageid == "SETTINGS":
     class="active"
@@ -159,7 +161,9 @@ class="nav-item"><a id="nav-link-settings" href="${docroot}/opts" class="nav-lin
      <li>200+ OSINT modules and data sources</li>
      <li>Modern purple gradient UI with dark mode</li>
      <li>Multiple export formats (CSV, Excel, JSON, GEXF)</li>
-     <li>Intelligent correlation engine</li>
+     <li>Intelligent graph correlation engine</li>
+     <li>Multi-factor entity risk scoring (0–100 score across 5 dimensions)</li>
+     <li>Container-based URL sandbox analysis</li>
      <li>RESTful API support</li>
    </ul>
 

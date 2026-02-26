@@ -105,7 +105,37 @@ class SpiderFootDb:
         "CREATE INDEX idx_scan_results_srchash ON tbl_scan_results (scan_instance_id, source_event_hash)",
         "CREATE INDEX idx_scan_logs ON tbl_scan_log (scan_instance_id)",
         "CREATE INDEX idx_scan_correlation ON tbl_scan_correlation_results (scan_instance_id, id)",
-        "CREATE INDEX idx_scan_correlation_events ON tbl_scan_correlation_results_events (correlation_id)"
+        "CREATE INDEX idx_scan_correlation_events ON tbl_scan_correlation_results_events (correlation_id)",
+        "CREATE TABLE IF NOT EXISTS tbl_scan_graph_correlations ( \
+            id INTEGER PRIMARY KEY AUTOINCREMENT, \
+            scan_instance_id VARCHAR NOT NULL REFERENCES tbl_scan_instance(guid), \
+            correlation_type VARCHAR NOT NULL, \
+            algorithm VARCHAR NOT NULL, \
+            entities TEXT NOT NULL, \
+            metadata TEXT, \
+            score REAL DEFAULT 0.0, \
+            created_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP \
+        )",
+        "CREATE INDEX IF NOT EXISTS idx_graph_correlation_scan ON tbl_scan_graph_correlations (scan_instance_id)",
+        "CREATE INDEX IF NOT EXISTS idx_graph_correlation_type ON tbl_scan_graph_correlations (scan_instance_id, correlation_type)",
+        "CREATE TABLE IF NOT EXISTS tbl_scan_risk_scores ( \
+            id INTEGER PRIMARY KEY AUTOINCREMENT, \
+            scan_instance_id VARCHAR NOT NULL REFERENCES tbl_scan_instance(guid), \
+            entity_hash VARCHAR NOT NULL, \
+            entity_type VARCHAR NOT NULL, \
+            entity_data TEXT, \
+            risk_score REAL DEFAULT 0.0, \
+            risk_level VARCHAR DEFAULT 'INFO', \
+            threat_score REAL DEFAULT 0.0, \
+            graph_score REAL DEFAULT 0.0, \
+            vuln_score REAL DEFAULT 0.0, \
+            infra_score REAL DEFAULT 0.0, \
+            exposure_score REAL DEFAULT 0.0, \
+            details TEXT, \
+            created_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP \
+        )",
+        "CREATE INDEX IF NOT EXISTS idx_risk_scores_scan ON tbl_scan_risk_scores (scan_instance_id)",
+        "CREATE INDEX IF NOT EXISTS idx_risk_scores_level ON tbl_scan_risk_scores (scan_instance_id, risk_level)"
     ]
 
     eventDetails = [
@@ -373,6 +403,31 @@ class SpiderFootDb:
                     raise IOError("Looks like you are running a pre-4.0 database. Unfortunately "
                                   "SpiderFoot wasn't able to migrate you, so you'll need to delete "
                                   "your SpiderFoot database in order to proceed.") from None
+
+            # For users adding graph correlation support
+            try:
+                self.dbh.execute("SELECT COUNT(*) FROM tbl_scan_graph_correlations")
+            except sqlite3.Error:
+                try:
+                    for query in self.createSchemaQueries:
+                        if "graph_correlation" in query:
+                            self.dbh.execute(query)
+                    self.conn.commit()
+                except sqlite3.Error:
+                    # Non-fatal if we can't create it, but will fail later
+                    pass
+
+            # For users adding risk scoring support
+            try:
+                self.dbh.execute("SELECT COUNT(*) FROM tbl_scan_risk_scores")
+            except sqlite3.Error:
+                try:
+                    for query in self.createSchemaQueries:
+                        if "risk_scores" in query:
+                            self.dbh.execute(query)
+                    self.conn.commit()
+                except sqlite3.Error:
+                    pass
 
             if init:
                 for row in self.eventDetails:
@@ -1800,3 +1855,172 @@ class SpiderFootDb:
                     raise IOError("Unable to create correlation result in database") from e
 
         return uniqueId
+
+    def storeGraphCorrelation(self, scanId: str, correlation_type: str, algorithm: str,
+                             entities: str, metadata: str, score: float = 0.0) -> bool:
+        """Store a graph correlation result in the database.
+
+        Args:
+            scanId (str): scan instance ID
+            correlation_type (str): Type of correlation (e.g., 'community', 'anomaly')
+            algorithm (str): Algorithm used (e.g., 'louvain', 'pagerank')
+            entities (str): JSON string of entity IDs
+            metadata (str): JSON string of additional metadata
+            score (float): Correlation score/confidence (default: 0.0)
+
+        Returns:
+            bool: Success status
+
+        Raises:
+            TypeError: Invalid argument type
+            IOError: Database I/O failed
+        """
+        if not isinstance(scanId, str):
+            raise TypeError(f"scanId is {type(scanId)}; expected str()")
+
+        qry = "INSERT INTO tbl_scan_graph_correlations \
+            (scan_instance_id, correlation_type, algorithm, entities, metadata, score) \
+            VALUES (?, ?, ?, ?, ?, ?)"
+
+        with self.dbhLock:
+            try:
+                self.dbh.execute(qry, (scanId, correlation_type, algorithm, entities, metadata, score))
+                self.conn.commit()
+                return True
+            except sqlite3.Error as e:
+                raise IOError(f"Unable to store graph correlation: {e}") from e
+
+    def getGraphCorrelations(self, scanId: str, correlation_type: str = None) -> list:
+        """Get graph correlation results for a scan.
+
+        Args:
+            scanId (str): scan instance ID
+            correlation_type (str, optional): Filter by correlation type
+
+        Returns:
+            list: Graph correlation results
+
+        Raises:
+            TypeError: Invalid argument type
+            IOError: Database I/O failed
+        """
+        if not isinstance(scanId, str):
+            raise TypeError(f"scanId is {type(scanId)}; expected str()")
+
+        qry = "SELECT id, scan_instance_id, correlation_type, algorithm, entities, metadata, score, created_time \
+            FROM tbl_scan_graph_correlations WHERE scan_instance_id = ?"
+        qvars = [scanId]
+
+        if correlation_type:
+            qry += " AND correlation_type = ?"
+            qvars.append(correlation_type)
+
+        qry += " ORDER BY score DESC, created_time DESC"
+
+        with self.dbhLock:
+            try:
+                self.dbh.execute(qry, qvars)
+                return self.dbh.fetchall()
+            except sqlite3.Error as e:
+                raise IOError(f"Unable to retrieve graph correlations: {e}") from e
+
+    # ── Risk Scoring Methods ──────────────────────────────────────────────
+
+    def storeRiskScores(self, scanId: str, scores: list) -> bool:
+        """Store risk score results for a scan.
+
+        Args:
+            scanId (str): scan instance ID
+            scores (list): list of tuples
+                (entity_hash, entity_type, entity_data, risk_score, risk_level,
+                 threat_score, graph_score, vuln_score, infra_score, exposure_score, details_json)
+
+        Returns:
+            bool: success
+
+        Raises:
+            TypeError: Invalid argument type
+            IOError: Database I/O failed
+        """
+        if not isinstance(scanId, str):
+            raise TypeError(f"scanId is {type(scanId)}; expected str()")
+
+        qry = """INSERT INTO tbl_scan_risk_scores
+            (scan_instance_id, entity_hash, entity_type, entity_data,
+             risk_score, risk_level,
+             threat_score, graph_score, vuln_score, infra_score, exposure_score,
+             details, created_time)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+        """
+
+        rows = []
+        for s in scores:
+            rows.append((scanId, s[0], s[1], s[2], s[3], s[4],
+                         s[5], s[6], s[7], s[8], s[9], s[10]))
+
+        with self.dbhLock:
+            try:
+                self.dbh.executemany(qry, rows)
+                self.conn.commit()
+                return True
+            except sqlite3.Error as e:
+                raise IOError(f"Unable to store risk scores: {e}") from e
+
+    def getRiskScores(self, scanId: str, riskLevel: str = None) -> list:
+        """Return risk scores for a scan, optionally filtered by risk level.
+
+        Args:
+            scanId (str): scan instance ID
+            riskLevel (str): optional filter (CRITICAL, HIGH, MEDIUM, LOW, INFO)
+
+        Returns:
+            list: risk score rows
+
+        Raises:
+            TypeError: Invalid argument type
+            IOError: Database I/O failed
+        """
+        if not isinstance(scanId, str):
+            raise TypeError(f"scanId is {type(scanId)}; expected str()")
+
+        qry = """SELECT id, scan_instance_id, entity_hash, entity_type, entity_data,
+            risk_score, risk_level,
+            threat_score, graph_score, vuln_score, infra_score, exposure_score,
+            details, created_time
+            FROM tbl_scan_risk_scores WHERE scan_instance_id = ?"""
+        qvars = [scanId]
+
+        if riskLevel:
+            qry += " AND risk_level = ?"
+            qvars.append(riskLevel)
+
+        qry += " ORDER BY risk_score DESC"
+
+        with self.dbhLock:
+            try:
+                self.dbh.execute(qry, qvars)
+                return self.dbh.fetchall()
+            except sqlite3.Error as e:
+                raise IOError(f"Unable to retrieve risk scores: {e}") from e
+
+    def deleteRiskScores(self, scanId: str) -> bool:
+        """Delete existing risk scores for a scan (for re-scoring).
+
+        Args:
+            scanId (str): scan instance ID
+
+        Returns:
+            bool: success
+        """
+        if not isinstance(scanId, str):
+            raise TypeError(f"scanId is {type(scanId)}; expected str()")
+
+        qry = "DELETE FROM tbl_scan_risk_scores WHERE scan_instance_id = ?"
+
+        with self.dbhLock:
+            try:
+                self.dbh.execute(qry, (scanId,))
+                self.conn.commit()
+                return True
+            except sqlite3.Error as e:
+                raise IOError(f"Unable to delete risk scores: {e}") from e

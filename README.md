@@ -119,7 +119,7 @@ docker-compose up -d
 ### Target Types Supported
 
 - 🌐 Domain names and subdomains
-- �� IP addresses and network ranges
+- 🔢 IP addresses and network ranges
 - 📧 Email addresses
 - 📞 Phone numbers
 - 👤 Human names and usernames
@@ -220,7 +220,7 @@ Please feel free to open issues or submit pull requests.
 
 - **Mr. Yash Patil**
 - **Mr. Soumitra Bapat**
-- **Ms. Sharvari Jadhav**
+- **Mr. Sharvari Jadhav**
 
 ---
 

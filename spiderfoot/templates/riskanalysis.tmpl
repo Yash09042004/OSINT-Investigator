@@ -1,0 +1,398 @@
+<%include file="HEADER.tmpl"/>
+
+<div class="row">
+    <div class="col-md-12">
+        <h2><i class="glyphicon glyphicon-warning-sign"></i> Entity Risk Analysis</h2>
+        <p>Multi-factor risk scoring for all discovered entities. Scores are computed across 5 dimensions: Threat Indicators, Graph Centrality, Vulnerabilities, Infrastructure Risk, and Data Exposure.</p>
+
+        <!-- Scan Selection -->
+        <div class="well">
+            <h4>Select Scan to Analyze</h4>
+            <div class="form-group">
+                <select id="scan-select" class="form-control">
+                    <option value="">-- Select a completed scan --</option>
+                    % for scan in scans:
+                        <option value="${scan[0]}">${scan[1]} (${scan[2]})</option>
+                    % endfor
+                </select>
+            </div>
+            <button id="run-risk-btn" class="btn btn-danger btn-lg" disabled>
+                <i class="glyphicon glyphicon-fire"></i> Run Risk Analysis
+            </button>
+            <span id="status-message" class="text-muted" style="margin-left: 15px;"></span>
+        </div>
+
+        <!-- Results Area -->
+        <div id="results-container" style="display: none;">
+
+            <!-- Scan Risk Summary -->
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4><i class="glyphicon glyphicon-dashboard"></i> Scan Risk Summary</h4>
+                </div>
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="risk-gauge" id="overall-gauge">
+                                <div class="gauge-score" id="overall-score">0</div>
+                                <div class="gauge-label">Overall Risk Score</div>
+                                <div class="gauge-level" id="overall-level">INFO</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-box">
+                                <h3 id="stat-total">0</h3>
+                                <p>Entities Scored</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div id="risk-distribution">
+                                <h5>Risk Distribution</h5>
+                                <div class="risk-bars" id="risk-bars"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dimension Averages -->
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4><i class="glyphicon glyphicon-equalizer"></i> Dimension Breakdown (Averages)</h4>
+                </div>
+                <div class="panel-body">
+                    <div class="row" id="dimension-bars">
+                        <div class="col-md-2ish dim-col">
+                            <div class="dim-label">Threat (30%)</div>
+                            <div class="dim-bar-container"><div class="dim-bar threat-bar" id="dim-threat" style="width:0%"></div></div>
+                            <div class="dim-value" id="dim-threat-val">0</div>
+                        </div>
+                        <div class="col-md-2ish dim-col">
+                            <div class="dim-label">Graph (20%)</div>
+                            <div class="dim-bar-container"><div class="dim-bar graph-bar" id="dim-graph" style="width:0%"></div></div>
+                            <div class="dim-value" id="dim-graph-val">0</div>
+                        </div>
+                        <div class="col-md-2ish dim-col">
+                            <div class="dim-label">Vuln (20%)</div>
+                            <div class="dim-bar-container"><div class="dim-bar vuln-bar" id="dim-vuln" style="width:0%"></div></div>
+                            <div class="dim-value" id="dim-vuln-val">0</div>
+                        </div>
+                        <div class="col-md-2ish dim-col">
+                            <div class="dim-label">Infra (15%)</div>
+                            <div class="dim-bar-container"><div class="dim-bar infra-bar" id="dim-infra" style="width:0%"></div></div>
+                            <div class="dim-value" id="dim-infra-val">0</div>
+                        </div>
+                        <div class="col-md-2ish dim-col">
+                            <div class="dim-label">Exposure (15%)</div>
+                            <div class="dim-bar-container"><div class="dim-bar exposure-bar" id="dim-exposure" style="width:0%"></div></div>
+                            <div class="dim-value" id="dim-exposure-val">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Risk Entities -->
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4><i class="glyphicon glyphicon-exclamation-sign"></i> Entity Risk Scores (<span id="entity-count">0</span>)</h4>
+                    <div class="pull-right" style="margin-top:-25px;">
+                        <select id="filter-level" class="form-control input-sm" style="width:auto;display:inline-block;">
+                            <option value="">All Levels</option>
+                            <option value="CRITICAL">CRITICAL</option>
+                            <option value="HIGH">HIGH</option>
+                            <option value="MEDIUM">MEDIUM</option>
+                            <option value="LOW">LOW</option>
+                            <option value="INFO">INFO</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="panel-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover" id="risk-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:5%">#</th>
+                                    <th style="width:8%">Score</th>
+                                    <th style="width:8%">Level</th>
+                                    <th style="width:12%">Type</th>
+                                    <th style="width:22%">Entity</th>
+                                    <th style="width:9%">Threat</th>
+                                    <th style="width:9%">Graph</th>
+                                    <th style="width:9%">Vuln</th>
+                                    <th style="width:9%">Infra</th>
+                                    <th style="width:9%">Exposure</th>
+                                </tr>
+                            </thead>
+                            <tbody id="risk-table-body">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.risk-gauge {
+    text-align: center;
+    padding: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(102,126,234,0.3);
+}
+.gauge-score {
+    font-size: 56px;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 4px;
+}
+.gauge-label {
+    font-size: 12px;
+    opacity: 0.85;
+}
+.gauge-level {
+    font-size: 18px;
+    font-weight: 700;
+    margin-top: 6px;
+    padding: 2px 12px;
+    border-radius: 4px;
+    display: inline-block;
+    background: rgba(255,255,255,0.2);
+}
+.stat-box {
+    text-align: center;
+    padding: 20px;
+    background: #f5f5f5;
+    border-radius: 8px;
+}
+.stat-box h3 {
+    margin: 0;
+    color: #667eea;
+    font-size: 36px;
+    font-weight: bold;
+}
+.stat-box p {
+    margin: 5px 0 0 0;
+    color: #666;
+}
+/* Risk distribution bars */
+.risk-bar-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 6px;
+}
+.risk-bar-label {
+    width: 80px;
+    font-weight: 600;
+    font-size: 13px;
+}
+.risk-bar-track {
+    flex: 1;
+    height: 22px;
+    background: #eee;
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 0 10px;
+}
+.risk-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.6s ease;
+}
+.risk-bar-count {
+    width: 40px;
+    text-align: right;
+    font-weight: 700;
+}
+/* Dimension breakdown */
+#dimension-bars {
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+}
+.dim-col {
+    flex: 1;
+    text-align: center;
+}
+.dim-label {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #555;
+}
+.dim-bar-container {
+    height: 18px;
+    background: #eee;
+    border-radius: 9px;
+    overflow: hidden;
+}
+.dim-bar {
+    height: 100%;
+    border-radius: 9px;
+    transition: width 0.6s ease;
+}
+.threat-bar   { background: #e74c3c; }
+.graph-bar    { background: #3498db; }
+.vuln-bar     { background: #e67e22; }
+.infra-bar    { background: #9b59b6; }
+.exposure-bar { background: #1abc9c; }
+.dim-value {
+    font-size: 14px;
+    font-weight: 700;
+    margin-top: 4px;
+}
+/* Risk level badges */
+.badge-critical { background: #c0392b; }
+.badge-high     { background: #e74c3c; }
+.badge-medium   { background: #f39c12; }
+.badge-low      { background: #3498db; }
+.badge-info     { background: #95a5a6; }
+/* Score cell coloring */
+.score-cell {
+    font-weight: 700;
+    font-size: 15px;
+}
+.risk-critical { color: #c0392b; }
+.risk-high     { color: #e74c3c; }
+.risk-medium   { color: #f39c12; }
+.risk-low      { color: #3498db; }
+.risk-info     { color: #95a5a6; }
+/* Dimension mini-scores */
+.dim-mini {
+    font-size: 12px;
+    font-weight: 600;
+}
+</style>
+
+<script>
+$(document).ready(function() {
+    let currentScanId = null;
+    let allEntities = [];
+
+    // Enable/disable button
+    $('#scan-select').change(function() {
+        const scanId = $(this).val();
+        $('#run-risk-btn').prop('disabled', !scanId);
+        currentScanId = scanId;
+        $('#results-container').hide();
+    });
+
+    // Run risk analysis
+    $('#run-risk-btn').click(function() {
+        if (!currentScanId) return;
+        const btn = $(this);
+        btn.prop('disabled', true);
+        $('#status-message').html('<i class="glyphicon glyphicon-refresh glyphicon-spin"></i> Running risk analysis...');
+
+        $.ajax({
+            url: '${docroot}/riskscore',
+            type: 'POST',
+            data: { scan_id: currentScanId },
+            dataType: 'json',
+            success: function(data) {
+                if (data.status === 'success') {
+                    $('#status-message').html('<span class="text-success">✓ Risk analysis complete! (' + data.elapsed + 's)</span>');
+                    displayResults(data.summary, data.entities);
+                    $('#results-container').show();
+                } else {
+                    $('#status-message').html('<span class="text-danger">✗ ' + data.message + '</span>');
+                }
+                btn.prop('disabled', false);
+            },
+            error: function() {
+                $('#status-message').html('<span class="text-danger">✗ Server error</span>');
+                btn.prop('disabled', false);
+            }
+        });
+    });
+
+    // Filter by level
+    $('#filter-level').change(function() {
+        const level = $(this).val();
+        renderTable(level ? allEntities.filter(e => e.risk_level === level) : allEntities);
+    });
+
+    function displayResults(summary, entities) {
+        allEntities = entities;
+
+        // Overall gauge
+        $('#overall-score').text(summary.overall_risk_score);
+        $('#overall-level').text(summary.overall_risk_level);
+        $('#stat-total').text(summary.total_entities);
+
+        // Color the gauge
+        const gaugeCls = 'risk-' + summary.overall_risk_level.toLowerCase();
+        const colors = {
+            'critical': 'linear-gradient(135deg,#c0392b,#e74c3c)',
+            'high':     'linear-gradient(135deg,#c0392b,#e67e22)',
+            'medium':   'linear-gradient(135deg,#e67e22,#f1c40f)',
+            'low':      'linear-gradient(135deg,#2980b9,#3498db)',
+            'info':     'linear-gradient(135deg,#667eea,#764ba2)'
+        };
+        $('#overall-gauge').css('background', colors[summary.overall_risk_level.toLowerCase()] || colors['info']);
+
+        // Risk distribution bars
+        const dist = summary.risk_distribution;
+        const total = summary.total_entities || 1;
+        const barColors = { CRITICAL:'#c0392b', HIGH:'#e74c3c', MEDIUM:'#f39c12', LOW:'#3498db', INFO:'#95a5a6' };
+        let barsHtml = '';
+        ['CRITICAL','HIGH','MEDIUM','LOW','INFO'].forEach(function(level) {
+            const count = dist[level] || 0;
+            const pct = (count / total * 100).toFixed(1);
+            barsHtml += '<div class="risk-bar-row">';
+            barsHtml += '  <div class="risk-bar-label" style="color:' + barColors[level] + '">' + level + '</div>';
+            barsHtml += '  <div class="risk-bar-track"><div class="risk-bar-fill" style="width:' + pct + '%;background:' + barColors[level] + '"></div></div>';
+            barsHtml += '  <div class="risk-bar-count">' + count + '</div>';
+            barsHtml += '</div>';
+        });
+        $('#risk-bars').html(barsHtml);
+
+        // Dimension averages
+        const dims = summary.dimension_averages;
+        ['threat','graph','vuln','infra','exposure'].forEach(function(d) {
+            const val = dims[d] || 0;
+            $('#dim-' + d).css('width', val + '%');
+            $('#dim-' + d + '-val').text(val.toFixed(1));
+        });
+
+        // Table
+        $('#entity-count').text(entities.length);
+        renderTable(entities);
+    }
+
+    function renderTable(entities) {
+        let html = '';
+        const levelColors = { CRITICAL:'critical', HIGH:'high', MEDIUM:'medium', LOW:'low', INFO:'info' };
+        entities.forEach(function(e, i) {
+            const cls = levelColors[e.risk_level] || 'info';
+            html += '<tr>';
+            html += '<td>' + (i+1) + '</td>';
+            html += '<td class="score-cell risk-' + cls + '">' + e.risk_score + '</td>';
+            html += '<td><span class="badge badge-' + cls + '">' + e.risk_level + '</span></td>';
+            html += '<td><small>' + e.entity_type + '</small></td>';
+            html += '<td title="' + escapeHtml(e.entity_data) + '">' + truncate(e.entity_data, 40) + '</td>';
+            html += '<td class="dim-mini">' + e.threat_score + '</td>';
+            html += '<td class="dim-mini">' + e.graph_score + '</td>';
+            html += '<td class="dim-mini">' + e.vuln_score + '</td>';
+            html += '<td class="dim-mini">' + e.infra_score + '</td>';
+            html += '<td class="dim-mini">' + e.exposure_score + '</td>';
+            html += '</tr>';
+        });
+        $('#risk-table-body').html(html);
+    }
+
+    function truncate(str, len) {
+        if (!str) return '';
+        return str.length > len ? str.substring(0, len) + '...' : str;
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+});
+</script>
+
+<%include file="FOOTER.tmpl"/>
