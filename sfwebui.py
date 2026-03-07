@@ -104,7 +104,8 @@ class SpiderFootWebUi:
             secure.ContentSecurityPolicy()
             .default_src("'self'")
             .script_src("'self'", "'unsafe-inline'", "blob:")
-            .style_src("'self'", "'unsafe-inline'")
+            .style_src("'self'", "'unsafe-inline'", "https://fonts.googleapis.com")
+            .font_src("'self'", "https://fonts.gstatic.com")
             .base_uri("'self'")
             .connect_src("'self'", "data:")
             .frame_src("'self'", 'data:')
@@ -118,9 +119,14 @@ class SpiderFootWebUi:
             referrer=secure.ReferrerPolicy().no_referrer(),
         )
 
+        # Convert secure headers to list of tuples for CherryPy
+        headers_list = []
+        for header_name, header_value in secure_headers.headers.items():
+            headers_list.append((header_name, header_value))
+
         cherrypy.config.update({
             "tools.response_headers.on": True,
-            "tools.response_headers.headers": secure_headers.framework.cherrypy()
+            "tools.response_headers.headers": headers_list
         })
 
     def error_page(self: 'SpiderFootWebUi') -> None:
@@ -1926,7 +1932,7 @@ class SpiderFootWebUi:
         # Mount the output_dir to /out
         # WARNING: This assumes the user has 'docker' in path and permissions
         cmd = [
-            "docker", "run", "--rm",
+            "sudo", "docker", "run", "--rm",
             "-v", f"{output_dir}:/out",
             "spiderfoot-sandbox",
             url
