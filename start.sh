@@ -69,8 +69,16 @@ echo ""
 echo "════════════════════════════════════════════"
 echo ""
 
+# Build sandbox Docker image (required for Sandbox URL analysis feature)
+echo "🐳 Building Sandbox Docker image (spiderfoot-sandbox)..."
+docker build -t spiderfoot-sandbox ./sandbox/ -q && \
+    echo "✓ Sandbox image built successfully" || \
+    echo "⚠️  Sandbox image build failed — sandbox feature will be unavailable"
+echo ""
+
 # Start the server on port 5001
 python3 sf.py -l 127.0.0.1:5001
+
 
 # Cleanup on exit
 echo ""

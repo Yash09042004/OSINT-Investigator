@@ -1,0 +1,144 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\citation{maltego}
+\citation{recon-ng}
+\citation{spiderfoot}
+\citation{thehive}
+\citation{blondel2008}
+\citation{jang2018}
+\citation{liao2019}
+\citation{pagerank}
+\citation{brandes2001}
+\citation{hawkins1980}
+\citation{cuckoo}
+\citation{joesandbox}
+\citation{anyrun}
+\@writefile{toc}{\contentsline {section}{\numberline {I}Introduction}{1}{section.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {I-A}}Background}{1}{subsection.1.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {I-B}}Problem Statement}{1}{subsection.1.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {I-C}}Contributions}{1}{subsection.1.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {I-D}}Paper Organization}{1}{subsection.1.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {II}Related Work}{1}{section.2}\protected@file@percent }
+\newlabel{sec:related}{{II}{1}{Related Work}{section.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-A}}Existing OSINT Tools}{1}{subsection.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-B}}Graph Methods in Security Research}{1}{subsection.2.2}\protected@file@percent }
+\citation{blondel2008}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-C}}Sandboxing Approaches}{2}{subsection.2.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {III}Methodology}{2}{section.3}\protected@file@percent }
+\newlabel{sec:methodology}{{III}{2}{Methodology}{section.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-A}}Graph-Based Correlation Architecture}{2}{subsection.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {III-A}1}Graph Construction}{2}{subsubsection.3.1.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Graph Construction Pipeline: Raw data is turned into a multi-directed graph $G=(V,E)$ and then passed into three separate analysis tools.}}{2}{figure.caption.1}\protected@file@percent }
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{fig:graph_pipeline}{{1}{2}{Graph Construction Pipeline: Raw data is turned into a multi-directed graph $G=(V,E)$ and then passed into three separate analysis tools}{figure.caption.1}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {III-A}2}Community Detection}{2}{subsubsection.3.1.2}\protected@file@percent }
+\newlabel{eq:modularity}{{1}{2}{Community Detection}{equation.3.1}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {III-A}3}Anomaly Detection}{2}{subsubsection.3.1.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {III-A}4}Centrality Measures}{2}{subsubsection.3.1.4}\protected@file@percent }
+\newlabel{eq:pagerank}{{2}{2}{Centrality Measures}{equation.3.2}{}}
+\newlabel{eq:betweenness}{{3}{2}{Centrality Measures}{equation.3.3}{}}
+\newlabel{eq:closeness}{{4}{2}{Centrality Measures}{equation.3.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-B}}Sandbox Architecture}{2}{subsection.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {III-B}1}Threat Model and Goals}{2}{subsubsection.3.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {III-B}2}Design Decisions}{2}{subsubsection.3.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {III-B}3}Analysis Lifecycle}{2}{subsubsection.3.2.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-C}}Risk Scoring}{2}{subsection.3.3}\protected@file@percent }
+\newlabel{eq:risk}{{5}{2}{Risk Scoring}{equation.3.5}{}}
+\citation{spiderfoot}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Isolated Sandbox Architecture: Docker-based URL analysis using containers with a 60-second hard timeout and optional network isolation.}}{3}{figure.caption.2}\protected@file@percent }
+\newlabel{fig:sandbox_arch}{{2}{3}{Isolated Sandbox Architecture: Docker-based URL analysis using containers with a 60-second hard timeout and optional network isolation}{figure.caption.2}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {IV}Implementation}{3}{section.4}\protected@file@percent }
+\newlabel{sec:implementation}{{IV}{3}{Implementation}{section.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-A}}System Architecture}{3}{subsection.4.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces PRISM System Architecture showing the Web Interface, CherryPy Web Server, three novel engines (Graph Correlation, Risk Scoring, Sandbox) and the SQLite/SpiderFoot core.}}{3}{figure.caption.3}\protected@file@percent }
+\newlabel{fig:system_arch}{{3}{3}{PRISM System Architecture showing the Web Interface, CherryPy Web Server, three novel engines (Graph Correlation, Risk Scoring, Sandbox) and the SQLite/SpiderFoot core}{figure.caption.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-B}}Module Overview}{3}{subsection.4.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {I}{\ignorespaces PRISM Module Summary}}{3}{table.caption.4}\protected@file@percent }
+\newlabel{tab:modules}{{I}{3}{PRISM Module Summary}{table.caption.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-C}}Graph Engine (\texttt  {graph\_engine.py})}{3}{subsection.4.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-D}}Graph Algorithms (\texttt  {graph\_algorithms.py})}{4}{subsection.4.4}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {II}{\ignorespaces Graph Analysis Algorithms Implemented in PRISM}}{4}{table.caption.5}\protected@file@percent }
+\newlabel{tab:algorithms}{{II}{4}{Graph Analysis Algorithms Implemented in PRISM}{table.caption.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-E}}Graph Correlation Engine (\texttt  {graph\_correlation.py})}{4}{subsection.4.5}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {III}{\ignorespaces Correlation Types and Supporting Algorithms}}{4}{table.caption.6}\protected@file@percent }
+\newlabel{tab:correlations}{{III}{4}{Correlation Types and Supporting Algorithms}{table.caption.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-F}}Risk Scoring Engine (\texttt  {risk\_scorer.py})}{4}{subsection.4.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-G}}Sandbox Implementation}{4}{subsection.4.7}\protected@file@percent }
+\newlabel{lst:dockerfile}{{1}{4}{Sandbox Dockerfile}{lstlisting.1}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {1}{\ignorespaces Sandbox Dockerfile}}{4}{lstlisting.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-H}}Web Interface}{4}{subsection.4.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {V}Evaluation}{4}{section.5}\protected@file@percent }
+\newlabel{sec:evaluation}{{V}{4}{Evaluation}{section.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-A}}Experimental Setup}{4}{subsection.5.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-B}}Graph Correlation Results}{4}{subsection.5.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {V-B}1}Community Detection}{4}{subsubsection.5.2.1}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {IV}{\ignorespaces Community Detection Results (Louvain Algorithm)}}{4}{table.caption.8}\protected@file@percent }
+\newlabel{tab:community_results}{{IV}{4}{Community Detection Results (Louvain Algorithm)}{table.caption.8}{}}
+\newlabel{fig:dashboard}{{4a}{5}{Investigation dashboard showing scan history}{figure.caption.7}{}}
+\newlabel{sub@fig:dashboard}{{a}{5}{Investigation dashboard showing scan history}{figure.caption.7}{}}
+\newlabel{fig:graph_results}{{4b}{5}{Graph correlation results with community breakdown}{figure.caption.7}{}}
+\newlabel{sub@fig:graph_results}{{b}{5}{Graph correlation results with community breakdown}{figure.caption.7}{}}
+\newlabel{fig:risk_results}{{4c}{5}{Risk scoring per entity with dimensional breakdown}{figure.caption.7}{}}
+\newlabel{sub@fig:risk_results}{{c}{5}{Risk scoring per entity with dimensional breakdown}{figure.caption.7}{}}
+\newlabel{fig:sandbox}{{4d}{5}{Sandbox analysis page with screenshot output}{figure.caption.7}{}}
+\newlabel{sub@fig:sandbox}{{d}{5}{Sandbox analysis page with screenshot output}{figure.caption.7}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces PRISM Web Interface. The dashboard (a) lists all investigations with status indicators. Graph analysis (b) shows detected communities and high-centrality nodes. Risk scoring (c) breaks down the composite score across five factors. The sandbox (d) shows the captured screenshot alongside console log output.}}{5}{figure.caption.7}\protected@file@percent }
+\newlabel{fig:screenshots}{{4}{5}{PRISM Web Interface. The dashboard (a) lists all investigations with status indicators. Graph analysis (b) shows detected communities and high-centrality nodes. Risk scoring (c) breaks down the composite score across five factors. The sandbox (d) shows the captured screenshot alongside console log output}{figure.caption.7}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {V}{\ignorespaces Precision, Recall, and F1 Summary Across Detection Tasks}}{5}{table.caption.9}\protected@file@percent }
+\newlabel{tab:precision_recall}{{V}{5}{Precision, Recall, and F1 Summary Across Detection Tasks}{table.caption.9}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {V-B}2}Infrastructure Overlap}{5}{subsubsection.5.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {V-B}3}Anomaly Detection}{5}{subsubsection.5.2.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {V-B}4}Key Actor Identification}{5}{subsubsection.5.2.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {V-B}5}Indirect Relationship Discovery}{5}{subsubsection.5.2.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-C}}Risk Scoring Results}{5}{subsection.5.3}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces This test entity's score came entirely from graph centrality. Hence, The other four dimensions contributed zero. Additionally,}}{5}{figure.caption.10}\protected@file@percent }
+\newlabel{fig:risk_detailed}{{5}{5}{This test entity's score came entirely from graph centrality. Hence, The other four dimensions contributed zero. Additionally,}{figure.caption.10}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-D}}Sandbox Evaluation}{5}{subsection.5.4}\protected@file@percent }
+\bibstyle{IEEEtran}
+\bibcite{maltego}{1}
+\bibcite{recon-ng}{2}
+\bibcite{spiderfoot}{3}
+\bibcite{thehive}{4}
+\bibcite{blondel2008}{5}
+\@writefile{lot}{\contentsline {table}{\numberline {VI}{\ignorespaces Sandbox Execution Time by Stage}}{6}{table.caption.11}\protected@file@percent }
+\newlabel{tab:sandbox_perf}{{VI}{6}{Sandbox Execution Time by Stage}{table.caption.11}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-E}}Scalability}{6}{subsection.5.5}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {VII}{\ignorespaces Performance vs. Graph Size}}{6}{table.caption.12}\protected@file@percent }
+\newlabel{tab:scalability}{{VII}{6}{Performance vs. Graph Size}{table.caption.12}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {VI}Discussion}{6}{section.6}\protected@file@percent }
+\newlabel{sec:discussion}{{VI}{6}{Discussion}{section.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VI-A}}Interpreting the Results}{6}{subsection.6.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VI-B}}Limitations}{6}{subsection.6.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VI-C}}Threats to Validity}{6}{subsection.6.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {VII}Conclusion and Future Work}{6}{section.7}\protected@file@percent }
+\newlabel{sec:conclusion}{{VII}{6}{Conclusion and Future Work}{section.7}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-A}}Summary}{6}{subsection.7.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-B}}Future Directions}{6}{subsection.7.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{References}{6}{section*.13}\protected@file@percent }
+\bibcite{jang2018}{6}
+\bibcite{liao2019}{7}
+\bibcite{pagerank}{8}
+\bibcite{brandes2001}{9}
+\bibcite{bavelas1950}{10}
+\bibcite{hawkins1980}{11}
+\bibcite{liu2008}{12}
+\bibcite{cuckoo}{13}
+\bibcite{joesandbox}{14}
+\bibcite{anyrun}{15}
+\bibcite{tarjan1972}{16}
+\@writefile{toc}{\contentsline {section}{Appendix\nobreakspace  A: Algorithm Pseudocode}{7}{section*.14}\protected@file@percent }
+\@writefile{loa}{\contentsline {algorithm}{\numberline {1}{\ignorespaces Louvain Community Detection}}{7}{algorithm.1}\protected@file@percent }
+\newlabel{alg:louvain}{{1}{7}{Louvain Community Detection}{algorithm.1}{}}
+\@writefile{toc}{\contentsline {section}{Appendix\nobreakspace  B: Database Schema}{7}{section*.15}\protected@file@percent }
+\newlabel{lst:schema}{{2}{7}{Graph Correlations Table Schema}{lstlisting.2}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {2}{\ignorespaces Graph Correlations Table Schema}}{7}{lstlisting.2}\protected@file@percent }
+\@writefile{loa}{\contentsline {algorithm}{\numberline {2}{\ignorespaces Z-Score Degree Anomaly Detection}}{7}{algorithm.2}\protected@file@percent }
+\newlabel{alg:zscore}{{2}{7}{Z-Score Degree Anomaly Detection}{algorithm.2}{}}
+\@writefile{toc}{\contentsline {section}{Appendix\nobreakspace  C: Additional Screenshots}{7}{section*.16}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Graph correlation detail view: community membership, high-centrality pivot nodes, and structural anomalies are listed with confidence scores.}}{7}{figure.caption.17}\protected@file@percent }
+\newlabel{fig:graph_correlations}{{6}{7}{Graph correlation detail view: community membership, high-centrality pivot nodes, and structural anomalies are listed with confidence scores}{figure.caption.17}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces New investigation setup: target specification with scan depth and module selection options.}}{8}{figure.caption.18}\protected@file@percent }
+\newlabel{fig:newscan}{{7}{8}{New investigation setup: target specification with scan depth and module selection options}{figure.caption.18}{}}
+\gdef \@abspage@last{8}

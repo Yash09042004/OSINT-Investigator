@@ -1,8 +1,0 @@
-[
-  {
-    "level": "WARNING",
-    "message": "https://www.youtube.com/ - [GroupMarkerNotSet(crbug.com/242999)!:A0D02000AC390000]Automatic fallback to software WebGL has been deprecated. Please use the --enable-unsafe-swiftshader (about:flags#enable-unsafe-swiftshader) flag to opt in to lower security guarantees for trusted content.",
-    "source": "rendering",
-    "timestamp": 1771243205093
-  }
-]
