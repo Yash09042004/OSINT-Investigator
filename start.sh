@@ -71,14 +71,9 @@ echo ""
 
 # Build sandbox Docker image (required for Sandbox URL analysis feature)
 echo "🐳 Building Sandbox Docker image (spiderfoot-sandbox)..."
-if docker image inspect spiderfoot-sandbox:latest &>/dev/null; then
-    echo "✓ Sandbox image already up to date — skipping build"
-else
-    echo "   Building from sandbox/Dockerfile (first time may take ~2 min)..."
-    docker build -t spiderfoot-sandbox ./sandbox/ -q && \
-        echo "✓ Sandbox image built successfully" || \
-        echo "⚠️  Sandbox image build failed — sandbox feature will be unavailable"
-fi
+docker build -t spiderfoot-sandbox ./sandbox/ -q && \
+    echo "✓ Sandbox image built successfully" || \
+    echo "⚠️  Sandbox image build failed — sandbox feature will be unavailable"
 echo ""
 
 # Start the server on port 5001

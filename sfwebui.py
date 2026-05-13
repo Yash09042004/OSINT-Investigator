@@ -1922,42 +1922,79 @@ class SpiderFootWebUi:
         output_dir = os.path.abspath(os.path.join(os.getcwd(), "sandbox_out", scan_id))
         os.makedirs(output_dir, exist_ok=True)
 
-        # Docker command
-        # Mount the output_dir to /out
-        # WARNING: This assumes the user has 'docker' in path and permissions
-        cmd = [
-            "docker", "run", "--rm",
-            "-v", f"{output_dir}:/out",
-            "spiderfoot-sandbox",
-            url
-        ]
+        # ---------------------------------------------------------------
+        # Build the command based on SANDBOX_MODE environment variable:
+        #
+        #   SANDBOX_MODE=native  → run runner.py directly in this process
+        #                          (used on Render where Docker-in-Docker is
+        #                           not available; Chromium is installed in
+        #                           the same container via Dockerfile.render)
+        #
+        #   (default / unset)    → use `docker run spiderfoot-sandbox`
+        #                          (original behaviour for local development)
+        # ---------------------------------------------------------------
+        sandbox_mode = os.environ.get("SANDBOX_MODE", "docker").strip().lower()
 
+        if sandbox_mode == "native":
+            # Native mode: call runner.py directly as a subprocess.
+            # runner.py reads /out as output dir; we override via OUTPUT_DIR env.
+            runner_path = os.environ.get("SANDBOX_RUNNER_PATH", "/app/sandbox/runner.py")
+            env = os.environ.copy()
+            # Override the hard-coded /out path inside runner.py via env var
+            # runner.py uses output_dir = os.environ.get("OUTPUT_DIR", "/out")
+            env["OUTPUT_DIR"] = output_dir
+            cmd = ["python3", runner_path, url]
+        else:
+            # Docker mode (default for local dev): spawn the sandbox container
+            cmd = [
+                "docker", "run", "--rm",
+                "-v", f"{output_dir}:/out",
+                "spiderfoot-sandbox",
+                url
+            ]
+            env = None  # inherit current environment
+
+        runner_log_file = os.path.join(output_dir, "runner.log")
+        runner_output = ""
         try:
-            # 60s timeout for the scan
-            subprocess.run(cmd, check=True, timeout=60)
-        except subprocess.CalledProcessError as e:
-            return {"status": "error", "message": f"Docker execution failed. Ensure Docker is running and image 'spiderfoot-sandbox' is built. Error: {e}"}
-        except subprocess.TimeoutExpired:
-            return {"status": "error", "message": "Analysis timed out (60s limit)."}
+            # 200s timeout — runner.py has a 150s internal hard limit so it always exits cleanly first
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=200, env=env)
+            runner_output = result.stdout
+            if result.stderr:
+                runner_output += "\n[STDERR]\n" + result.stderr
+            # Non-zero exit is not fatal — runner may still have produced partial results
+        except subprocess.TimeoutExpired as e:
+            # Grab any partial output before timeout
+            runner_output = (e.stdout or "") + "\n\n[HOST] Analysis timed out after 200 seconds."
         except Exception as e:
             return {"status": "error", "message": str(e)}
+
+        # Always save runner process log so the UI can display it
+        try:
+            with open(runner_log_file, "w") as f:
+                f.write(runner_output)
+        except Exception:
+            pass
 
         # Check for artifacts
         # runner.py produces screenshots.json manifest + screenshot_N_name.png files
         manifest_file = os.path.join(output_dir, "screenshots.json")
         log_file = os.path.join(output_dir, "console.json")
-        
+
         has_screenshot = os.path.exists(manifest_file)
         has_logs = os.path.exists(log_file)
-        
+        has_runner_log = os.path.exists(runner_log_file)
+
         # Read manifest to get list of screenshot files
         screenshots = []
+        total_screenshots = 0
         if has_screenshot:
             try:
                 with open(manifest_file, "r") as f:
                     import json as _json
                     manifest = _json.load(f)
                     screenshots = manifest.get("screenshots", [])
+                    total_screenshots = manifest.get("total_screenshots", len(screenshots))
             except Exception:
                 pass
 
@@ -1966,6 +2003,8 @@ class SpiderFootWebUi:
             "scan_id": scan_id,
             "has_screenshot": has_screenshot,
             "has_logs": has_logs,
+            "has_runner_log": has_runner_log,
+            "total_screenshots": total_screenshots,
             "screenshots": screenshots
         }
 
@@ -1980,8 +2019,8 @@ class SpiderFootWebUi:
         if not id or not id.replace("-", "").isalnum() or ".." in file:
              return self.error("Invalid request")
 
-        # Allow screenshot_*.png files, console.json, and screenshots.json
-        valid_patterns = [r'^screenshot_\d+_.*\.png$', r'^console\.json$', r'^screenshots\.json$']
+        # Allow screenshot_*.png files, console.json, screenshots.json, and runner.log
+        valid_patterns = [r'^screenshot_\d+_.*\.png$', r'^console\.json$', r'^screenshots\.json$', r'^runner\.log$']
         if not any(re.match(pattern, file) for pattern in valid_patterns):
             return self.error("Invalid file type")
 
@@ -1993,7 +2032,9 @@ class SpiderFootWebUi:
         if file.endswith(".png"):
             cherrypy.response.headers['Content-Type'] = "image/png"
         elif file.endswith(".json"):
-             cherrypy.response.headers['Content-Type'] = "application/json"
+            cherrypy.response.headers['Content-Type'] = "application/json"
+        elif file.endswith(".log"):
+            cherrypy.response.headers['Content-Type'] = "text/plain; charset=utf-8"
 
         with open(path, "rb") as f:
             return f.read()

@@ -5,13 +5,13 @@
         <div class="col-md-12">
             <h2><i class="glyphicon glyphicon-eye-open"></i> Safe Link Analysis Sandbox</h2>
             <p>Analyze suspicious URLs safely in an isolated container. This tool captures screenshots and console logs without exposing your host machine.</p>
-            
+
             <!-- Input Form -->
             <div class="well">
                 <form id="sandbox-form">
                     <div class="form-group">
                         <label for="url-input">Enter URL to Analyze:</label>
-                        <input type="text" class="form-control" id="url-input" placeholder="https://example.com" autocomplete="off">
+                        <input type="text" class="form-control" id="url-input" placeholder="https://example.com or example.com" autocomplete="off">
                     </div>
                     <button type="submit" id="analyze-btn" class="btn btn-primary">
                         <i class="glyphicon glyphicon-search"></i> Analyze
@@ -21,33 +21,50 @@
 
             <!-- Loader -->
             <div id="loader" class="alert alert-info" style="display: none;">
-                <i class="glyphicon glyphicon-refresh glyphicon-spin"></i> Analyzing URL in isolated container... This may take 30-60 seconds.
+                <i class="glyphicon glyphicon-refresh glyphicon-spin"></i>
+                Analyzing URL in isolated container&hellip; This may take up to 3 minutes depending on the site.
             </div>
 
             <!-- Results Area -->
             <div id="results-area" style="display: none;">
                 <h3>Analysis Results</h3>
+
+                <!-- Status banner -->
+                <div id="status-banner" class="alert" style="display:none;"></div>
+
                 <div class="panel panel-default">
-                    <ul class="nav nav-tabs">
-                        <li class="active"><a data-toggle="tab" href="#tab-screenshot">Screenshots</a></li>
-                        <li><a data-toggle="tab" href="#tab-logs">Console Logs</a></li>
+                    <ul class="nav nav-tabs" id="result-tabs">
+                        <li class="active"><a data-toggle="tab" href="#tab-screenshot">Screenshots <span id="screenshot-badge" class="badge">0</span></a></li>
+                        <li><a data-toggle="tab" href="#tab-logs">Browser Console Logs</a></li>
+                        <li><a data-toggle="tab" href="#tab-runner-log">Analysis Log</a></li>
                     </ul>
 
                     <div class="tab-content" style="padding-top: 20px;">
+                        <!-- Screenshots tab -->
                         <div id="tab-screenshot" class="tab-pane fade in active">
-                             <div id="screenshots-container"></div>
-                             <div id="no-screenshot" class="alert alert-warning" style="display:none">No screenshots available.</div>
+                            <div id="screenshots-container"></div>
+                            <div id="no-screenshot" class="alert alert-warning" style="display:none;">
+                                <strong>No screenshots were captured.</strong>
+                                Check the <strong>Analysis Log</strong> tab for details on what happened.
+                            </div>
                         </div>
+
+                        <!-- Browser console logs tab -->
                         <div id="tab-logs" class="tab-pane fade">
-                            <pre id="log-output" style="height: 500px; overflow-y: scroll; background: #222; color: #0f0;"></pre>
-                             <div id="no-logs" class="alert alert-warning" style="display:none">No logs available.</div>
+                            <pre id="log-output" style="height: 500px; overflow-y: scroll; background: #222; color: #0f0; font-size: 12px; padding: 10px;"></pre>
+                            <div id="no-logs" class="alert alert-warning" style="display:none;">No browser console logs available.</div>
+                        </div>
+
+                        <!-- Runner process log tab -->
+                        <div id="tab-runner-log" class="tab-pane fade">
+                            <pre id="runner-log-output" style="height: 500px; overflow-y: scroll; background: #1a1a2e; color: #a8d8ea; font-size: 12px; padding: 10px; white-space: pre-wrap; word-wrap: break-word;"></pre>
+                            <div id="no-runner-log" class="alert alert-warning" style="display:none;">No analysis log available.</div>
                         </div>
                     </div>
                 </div>
             </div>
-        
-            <div id="error-area" class="alert alert-danger" style="display: none;"></div>
 
+            <div id="error-area" class="alert alert-danger" style="display: none;"></div>
         </div>
     </div>
 </div>
@@ -55,8 +72,8 @@
 <script>
     $("#sandbox-form").submit(function(e) {
         e.preventDefault();
-        var url = $("#url-input").val();
-        
+        var url = $("#url-input").val().trim();
+
         if (!url) {
             alertify.error("Please enter a URL");
             return;
@@ -66,72 +83,85 @@
         $("#loader").show();
         $("#results-area").hide();
         $("#error-area").hide();
+        $("#status-banner").hide().removeClass("alert-success alert-warning alert-danger");
         $("#analyze-btn").prop("disabled", true);
 
         $.ajax({
             type: "POST",
             url: "${docroot}/sandboxscan",
             data: { url: url },
+            timeout: 220000,  // 220s client-side timeout
             success: function(data) {
                 $("#loader").hide();
                 $("#analyze-btn").prop("disabled", false);
 
                 if (data.status === "error") {
-                    $("#error-area").text(data.message).show();
+                    $("#error-area").html("<strong>Error:</strong> " + $("<div/>").text(data.message).html()).show();
                     return;
                 }
 
                 $("#results-area").show();
                 var scanId = data.scan_id;
+                var totalShots = data.total_screenshots || 0;
 
-                // Try to load screenshots.json manifest
-                $.ajax({
-                    url: "${docroot}/sandboxfile?id=" + scanId + "&file=screenshots.json",
-                    dataType: "json",
-                    success: function(manifest) {
-                        // Display all screenshots from manifest
-                        if (manifest.screenshots && manifest.screenshots.length > 0) {
-                            var html = '<div class="row">';
-                            manifest.screenshots.forEach(function(screenshot) {
-                                html += '<div class="col-md-6" style="margin-bottom: 20px;">';
-                                html += '  <div class="thumbnail">';
-                                html += '    <img src="${docroot}/sandboxfile?id=' + scanId + '&file=' + screenshot.filename + '" class="img-responsive" style="width: 100%;">';
-                                html += '    <div class="caption">';
-                                html += '      <h5><strong>Page ' + screenshot.number + ':</strong> ' + (screenshot.type === 'homepage' ? 'Homepage' : 'Internal Page') + '</h5>';
-                                html += '      <p style="font-size: 11px; word-break: break-all; color: #666;">' + screenshot.url + '</p>';
-                                html += '    </div>';
-                                html += '  </div>';
-                                html += '</div>';
-                            });
-                            html += '</div>';
-                            html += '<p class="text-muted"><small>Total screenshots captured: ' + manifest.total_screenshots + '</small></p>';
-                            $("#screenshots-container").html(html);
-                            $("#no-screenshot").hide();
-                        } else {
-                            $("#no-screenshot").show();
-                        }
-                    },
-                    error: function() {
-                        // Fallback to single screenshot if manifest doesn't exist
-                        if (data.has_screenshot) {
-                            var html = '<img src="${docroot}/sandboxfile?id=' + scanId + '&file=screenshot.png" class="img-responsive img-thumbnail" style="border: 1px solid #ddd; width: 100%;">';
-                            $("#screenshots-container").html(html);
-                            $("#no-screenshot").hide();
-                        } else {
-                            $("#no-screenshot").show();
-                        }
-                    }
-                });
+                // Status banner
+                var bannerClass, bannerMsg;
+                if (totalShots === 0) {
+                    bannerClass = "alert-warning";
+                    bannerMsg = "<strong>No screenshots captured.</strong> The site may have timed out, refused the connection, or had no accessible pages. See the <strong>Analysis Log</strong> tab for details.";
+                } else if (totalShots < 20) {
+                    bannerClass = "alert-info";
+                    bannerMsg = "<strong>" + totalShots + " screenshot(s) captured.</strong> The site had fewer than 20 internal pages to crawl.";
+                } else {
+                    bannerClass = "alert-success";
+                    bannerMsg = "<strong>20 screenshots captured</strong> — maximum page limit reached.";
+                }
+                $("#status-banner").addClass(bannerClass).html(bannerMsg).show();
 
-                // Load logs
+                // Update badge
+                $("#screenshot-badge").text(totalShots);
+
+                // If 0 screenshots, auto-switch to Analysis Log tab
+                if (totalShots === 0) {
+                    $("#result-tabs a[href='#tab-runner-log']").tab("show");
+                }
+
+                // --- Screenshots tab ---
+                if (data.has_screenshot && data.screenshots && data.screenshots.length > 0) {
+                    var html = '<div class="row">';
+                    data.screenshots.forEach(function(shot) {
+                        html += '<div class="col-md-6" style="margin-bottom: 20px;">';
+                        html += '  <div class="thumbnail">';
+                        html += '    <img src="${docroot}/sandboxfile?id=' + encodeURIComponent(scanId) + '&file=' + encodeURIComponent(shot.filename) + '" class="img-responsive" style="width:100%;" loading="lazy">';
+                        html += '    <div class="caption">';
+                        html += '      <h5><strong>Page ' + shot.number + ':</strong> ' + (shot.type === "homepage" ? "Homepage" : "Internal Page") + '</h5>';
+                        html += '      <p style="font-size:11px; word-break:break-all; color:#666;">' + $("<div/>").text(shot.url).html() + '</p>';
+                        html += '    </div>';
+                        html += '  </div>';
+                        html += '</div>';
+                    });
+                    html += '</div>';
+                    html += '<p class="text-muted"><small>Total screenshots captured: ' + totalShots + '</small></p>';
+                    $("#screenshots-container").html(html);
+                    $("#no-screenshot").hide();
+                } else {
+                    $("#screenshots-container").empty();
+                    $("#no-screenshot").show();
+                }
+
+                // --- Browser Console logs tab ---
                 if (data.has_logs) {
                     $.ajax({
-                        url: "${docroot}/sandboxfile?id=" + scanId + "&file=console.json",
+                        url: "${docroot}/sandboxfile?id=" + encodeURIComponent(scanId) + "&file=console.json",
                         dataType: "json",
                         success: function(logs) {
-                            var logText = JSON.stringify(logs, null, 2);
-                            $("#log-output").text(logText);
-                            $("#no-logs").hide();
+                            if (logs && logs.length > 0) {
+                                $("#log-output").text(JSON.stringify(logs, null, 2));
+                                $("#no-logs").hide();
+                            } else {
+                                $("#log-output").text("(no browser console events captured)");
+                                $("#no-logs").hide();
+                            }
                         },
                         error: function() {
                             $("#no-logs").show();
@@ -140,11 +170,33 @@
                 } else {
                     $("#no-logs").show();
                 }
+
+                // --- Runner process log tab (always attempt) ---
+                $.ajax({
+                    url: "${docroot}/sandboxfile?id=" + encodeURIComponent(scanId) + "&file=runner.log",
+                    dataType: "text",
+                    success: function(logText) {
+                        if (logText && logText.trim().length > 0) {
+                            $("#runner-log-output").text(logText);
+                            $("#no-runner-log").hide();
+                        } else {
+                            $("#runner-log-output").text("(empty log)");
+                            $("#no-runner-log").hide();
+                        }
+                    },
+                    error: function() {
+                        $("#no-runner-log").show();
+                    }
+                });
             },
             error: function(xhr, status, error) {
                 $("#loader").hide();
                 $("#analyze-btn").prop("disabled", false);
-                $("#error-area").text("Server error: " + error).show();
+                if (status === "timeout") {
+                    $("#error-area").text("Request timed out. The analysis is still running on the server; try refreshing.").show();
+                } else {
+                    $("#error-area").text("Server error: " + error).show();
+                }
             }
         });
     });
